@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Multi-Channel Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <p class="eyebrow">VelpTEC AI-Development · Teilprüfung 2</p>
+            <h1>Multi-Channel Chatbot</h1>
+            <p>Fragen Sie das Wetter ab oder erstellen Sie eine fiktive Terminbuchung.</p>
+        </header>
+
+        <section class="card" aria-labelledby="weather-heading">
+            <h2 id="weather-heading">Wetteranfrage</h2>
+            <form id="weather-form">
+                <label for="city">Stadt</label>
+                <input id="city" name="city" type="text" placeholder="z. B. Berlin" required>
+                <button type="submit">Wetter abrufen</button>
+            </form>
+            <p id="weather-result" class="result" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card" aria-labelledby="appointment-heading">
+            <h2 id="appointment-heading">Terminbuchung</h2>
+            <form id="appointment-form">
+                <label for="date">Datum (DD.MM.YYYY)</label>
+                <input id="date" name="date" type="text" placeholder="20.07.2026" required>
+                <label for="time">Uhrzeit (HH:MM)</label>
+                <input id="time" name="time" type="time" required>
+                <button type="submit">Termin fiktiv buchen</button>
+            </form>
+            <p id="appointment-result" class="result" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

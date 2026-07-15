@@ -1,0 +1,34 @@
+HINWEIS ZUR ABGABE
+
+Die Abgabe erfolgt als ZIP-Datei:
+submission/Angie_Angarita_Soto_Teilprüfung 2.zip
+
+Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellcodedateien:
+
+- README.md
+- telegram_bot.py
+- web_app.py
+- weather_service.py
+- booking_service.py
+- templates/index.html
+- static/app.js
+- static/style.css
+- Bilder/DescriptionPic.png
+- Bilder/ProfilePic.png
+- Bilder/Screenshot 01_BotConfiguration.png
+- requirements.txt
+- .env.example
+- beispiel_dialog.txt
+- hinweis_zur_abgabe.txt
+
+README.md enthält die Hauptlösung mit Aufgabenstellung, Architektur, Umsetzung, Ausführung, Beispielen und Reflexion.
+
+Repository:
+https://github.com/angie86-cmd/ai-development-teilpruefung-2
+
+Der Ordner Bilder/ mit den drei PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild und das Description Picture des Telegram-Bots.
+
+Für den Bot ist die Telegram Standard Privacy Policy hinterlegt:
+https://telegram.org/privacy-tpa
+
+Es sind keine echten API-Schlüssel, Telegram-Tokens oder sonstigen Secrets enthalten. Eine reale .env-Datei ist nicht Bestandteil der Abgabe. .env.example dokumentiert ausschließlich Platzhalter und die benötigten Umgebungsvariablen. Der Wetter-Demo-Modus ermöglicht einen Test ohne OpenWeatherMap API-Key; zum tatsächlichen Start des Telegram-Kanals wird lokal ein eigenes Telegram-Bot-Token benötigt.

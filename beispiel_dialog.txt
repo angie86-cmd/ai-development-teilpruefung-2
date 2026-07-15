@@ -1,0 +1,49 @@
+BEISPIELDIALOG – MULTI-CHANNEL CHATBOT
+
+1. Telegram
+
+Konfigurierter Bot: @angie_weather_booking_bot
+
+Benutzer:
+/start
+
+Bot:
+Willkommen beim Multi-Channel-Chatbot!
+Mit /wetter [Stadt] erhalten Sie Wetterinformationen.
+Mit /termin [Datum] [Zeit] buchen Sie einen fiktiven Termin.
+Weitere Informationen: /hilfe
+
+Benutzer:
+/hilfe
+
+Bot:
+Verfügbare Befehle:
+/start – Begrüßung anzeigen
+/hilfe – Hilfe anzeigen
+/wetter [Stadt] – z. B. /wetter Berlin
+/termin [DD.MM.YYYY] [HH:MM] – z. B. /termin 20.07.2026 14:00
+
+Benutzer:
+/wetter Berlin
+
+Bot im Demo-Modus:
+Demo-Wetter für Berlin: 21 °C, leicht bewölkt. Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden.
+
+Benutzer:
+/termin 20.07.2026 14:00
+
+Bot:
+Ihr Termin wurde fiktiv für den 20.07.2026 um 14:00 Uhr bestätigt.
+
+2. Webanwendung
+
+Wetterformular:
+Eingabe Stadt: Berlin
+Angezeigte Antwort: Demo-Wetter für Berlin: 21 °C, leicht bewölkt. Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden.
+
+Terminformular:
+Eingabe Datum: 20.07.2026
+Eingabe Uhrzeit: 14:00
+Angezeigte Antwort: Ihr Termin wurde fiktiv für den 20.07.2026 um 14:00 Uhr bestätigt.
+
+Telegram und Web verwenden dieselbe Geschäftslogik aus weather_service.py und booking_service.py. Dadurch sind die Antworten kanalübergreifend konsistent.
