@@ -110,6 +110,8 @@ Durch Polling kann der Bot lokal getestet werden, ohne einen öffentlichen Serve
 
 ## 1.2 Architektur des Telegram-Kanals
 
+**Abbildung 1: Routing und Datenfluss des Telegram-Kanals**
+
 ```text
 Telegram User
     ↓
@@ -122,7 +124,18 @@ weather_service.py / booking_service.py
 Bot Response
 ```
 
-Die Telegram-Schicht enthält bewusst nur kanalspezifische Aufgaben: Sie empfängt Befehle, liest deren Argumente und sendet Antworten über Telegram zurück. Wetter- oder Buchungsregeln werden dort nicht erneut implementiert; `telegram_bot.py` ruft dafür `weather_service.py` beziehungsweise `booking_service.py` auf. Diese Trennung von Kanallogik und Geschäftslogik erleichtert Tests, Wartung und Erweiterungen. Zugleich können künftige Kanäle dieselben Services wiederverwenden.
+Der Routing- und Datenfluss läuft in acht Schritten ab:
+
+1. Die Benutzerin oder der Benutzer sendet in Telegram einen Befehl, beispielsweise `/wetter Berlin` oder `/termin 20.07.2026 14:00`.
+2. Telegram leitet den Befehl über die Telegram Bot API an den Bot weiter.
+3. `telegram_bot.py` empfängt den Befehl über den konfigurierten Command-Handler.
+4. Der Telegram-Handler liest die Befehlsargumente aus.
+5. Für Wetteranfragen ruft `telegram_bot.py` die Funktion in `weather_service.py` auf.
+6. Für Terminanfragen ruft `telegram_bot.py` die Funktion in `booking_service.py` auf.
+7. Der ausgewählte Service gibt einen deutschen Antworttext zurück.
+8. `telegram_bot.py` sendet die Antwort über Telegram an die Benutzerin oder den Benutzer zurück.
+
+Die Telegram-Schicht enthält damit ausschließlich kanalspezifische Logik: Sie empfängt Befehle, extrahiert Argumente und sendet Antworten. Wetter- und Buchungslogik werden nicht im Kanaladapter dupliziert, sondern an die gemeinsame Geschäftslogik in `weather_service.py` und `booking_service.py` delegiert. Diese Trennung erleichtert Tests, Wartung und Erweiterungen. Zukünftige Kanäle können dieselben Services wiederverwenden und sich in die Multi-Channel-Architektur einfügen.
 
 ## 1.3 Unterstützte Befehle
 
@@ -154,23 +167,23 @@ Der Bot wurde in BotFather mit folgenden öffentlich sichtbaren Angaben konfigur
   - `/termin 20.07.2026 14:00 - Fiktiven Termin buchen`
 - **Privacy Policy:** [https://telegram.org/privacy-tpa](https://telegram.org/privacy-tpa)
 
-**Abbildung 1: Telegram BotFather-Konfiguration**
+**Abbildung 2: Telegram BotFather-Konfiguration**
 
 ![Telegram Bot Konfiguration](Bilder/Screenshot%2001_BotConfiguration.png)
 
-Abbildung 1 zeigt die konfigurierte BotFather-Übersicht mit Botname, Beschreibung, Befehlen, Bildkonfiguration und verwendeter Telegram Standard Privacy Policy.
+Abbildung 2 zeigt die konfigurierte BotFather-Übersicht mit Botname, Beschreibung, Befehlen, Bildkonfiguration und verwendeter Telegram Standard Privacy Policy.
 
-**Abbildung 2: Telegram Bot Profilbild**
+**Abbildung 3: Telegram Bot Profilbild**
 
 ![Telegram Bot Profilbild](Bilder/ProfilePic.png)
 
-Abbildung 2 zeigt das Profilbild des Bots, das den Wetter- und Termin-Anwendungsfall visuell darstellt.
+Abbildung 3 zeigt das Profilbild des Bots, das den Wetter- und Termin-Anwendungsfall visuell darstellt.
 
-**Abbildung 3: Telegram Bot Description Picture**
+**Abbildung 4: Telegram Bot Description Picture**
 
 ![Telegram Bot Description Picture](Bilder/DescriptionPic.png)
 
-Abbildung 3 zeigt das Description Picture, das im Bereich „What can this bot do?“ angezeigt wird.
+Abbildung 4 zeigt das Description Picture, das im Bereich „What can this bot do?“ angezeigt wird.
 
 ## 1.5 Verwendung gemeinsamer Geschäftslogik
 
@@ -301,7 +314,7 @@ Für einen schlanken Prototyp ist AJAX mit der integrierten Fetch API besonders 
 
 ## 2.2 Architektur der Webanwendung
 
-**Abbildung 4: Routing und Datenfluss der Flask-Webanwendung**
+**Abbildung 5: Routing und Datenfluss der Flask-Webanwendung**
 
 ```text
 Browser
@@ -329,6 +342,8 @@ Der Routing- und Datenfluss läuft in acht Schritten ab:
 6. Der aufgerufene Service gibt einen deutschen Antworttext zurück.
 7. Flask verpackt diesen Text als JSON-Antwort.
 8. JavaScript schreibt die Antwort in den zugehörigen Ergebnisbereich der Seite.
+
+Die Web-Schicht enthält ausschließlich kanalspezifische Logik für Browser und Flask. Im Browser stellen `templates/index.html` und `static/app.js` Formulare, Ereignisverarbeitung und Ergebnisbereiche bereit. AJAX mit `fetch` verhindert einen vollständigen Seitenreload, während `web_app.py` die Flask-Routen sowie die Verarbeitung von JSON-Anfragen und JSON-Antworten übernimmt. Wetter- und Buchungslogik werden wie beim Telegram-Kanal an `weather_service.py` und `booking_service.py` delegiert. Die parallele Trennung von Kanallogik und gemeinsamer Geschäftslogik bildet die Grundlage der sauberen Multi-Channel-Architektur.
 
 ## 2.3 Flask-Routen
 
@@ -621,11 +636,63 @@ Telegram-spezifischer Code bleibt in `telegram_bot.py`. Web-spezifischer Code li
 
 Die Services können unabhängig von den Kanälen getestet und gewartet werden. Beide Oberflächen verhalten sich konsistent, weil sie dieselben Funktionen verwenden. Weitere Adapter für WhatsApp Business, Microsoft Teams oder Slack könnten später ergänzt werden, ohne die zentrale Wetter- oder Buchungslogik neu zu implementieren.
 
-## 2.12 Erklärung des Codes für die Webanwendung und die gemeinsamen Services
+## 2.12 JSON-Daten und Konfigurationsdateien
+
+JSON wird in diesem Projekt auf zwei Arten eingesetzt:
+
+1. als Format für JSON-Anfragen und JSON-Antworten zwischen `static/app.js` und den Flask-Endpunkten in `web_app.py`;
+2. als lokales Daten- und Konfigurationsformat für die Dateien im Ordner `data/`.
+
+Die lokalen JSON-Dateien trennen kleine, veränderbare Daten- und Konfigurationswerte von der Python-Logik. Dadurch wird der Prototyp leichter verständlich, wartbar und erweiterbar. Zugleich bleibt der Demo-Modus reproduzierbar, weil die Anwendung ohne reale API-Keys mit festgelegten Daten geprüft werden kann.
+
+**Tabelle 4: JSON-Dateien im Projekt**
+
+| Datei | Zweck |
+|---|---|
+| `data/demo_weather_data.json` | Enthält deterministische Demo-Wetterdaten für Tests ohne OpenWeatherMap API-Key. |
+| `data/appointment_config.json` | Enthält einfache Text- und Konfigurationswerte für fiktive Terminbestätigungen. |
+
+### 2.12.1 `data/demo_weather_data.json`
+
+Die Datei enthält deterministische Demo-Wetterdaten für Berlin, Hamburg, München und Köln sowie einen `default`-Eintrag. `weather_service.py` liest diese Daten, wenn kein `OPENWEATHER_API_KEY` verfügbar ist. Dadurch müssen die Demo-Werte nicht vollständig in Python hartcodiert werden und lassen sich anpassen, ohne die zentrale Service-Logik zu verändern. Dieselbe Stadt liefert bei wiederholten Tests dieselben Daten, was die Reproduzierbarkeit verbessert.
+
+**Workflow der Demo-Wetterdaten:**
+
+```text
+No OPENWEATHER_API_KEY
+    ↓
+weather_service.py
+    ↓
+data/demo_weather_data.json
+    ↓
+Demo-Wetterantwort
+```
+
+### 2.12.2 `data/appointment_config.json`
+
+Die Datei stellt einfache Konfigurationswerte für fiktive Terminbestätigungen bereit. `booking_service.py` verwendet unter anderem Bestätigungspräfix und -suffix, Hinweise für Datums- und Zeitformat sowie Beispielwerte. Damit bleiben konfigurierbare Texte von der Validierungslogik getrennt. Es wird kein realer Termin gespeichert und es werden keine personenbezogenen Daten persistiert; die Buchung bleibt ausdrücklich fiktiv und erzeugt nur einen deutschen Antworttext.
+
+**Workflow der Terminkonfiguration:**
+
+```text
+Date + time from user
+    ↓
+booking_service.py
+    ↓
+data/appointment_config.json
+    ↓
+Fiktive Terminbestätigung
+```
+
+### 2.12.3 Begründung für JSON-Konfiguration
+
+JSON ist leichtgewichtig, gut lesbar, sprachunabhängig und als Format für strukturierten Datenaustausch weit verbreitet. Für kleine Konfigurationsdateien eignet es sich besonders, weil statische Daten- und Textwerte nicht mit dem Python-Kontrollfluss vermischt werden müssen. Die Lösung demonstriert damit eine klare Trennung zwischen Daten, Konfiguration und Code. In einem größeren Produktivsystem könnten die Dateien später durch eine Datenbank, ein Content-Management-System, eine API, ein CRM oder eine Wissensbasis ersetzt werden.
+
+## 2.13 Erklärung des Codes für die Webanwendung und die gemeinsamen Services
 
 Die Routen `index()`, `weather_api()` und `appointment_api()` sind bereits mit ihrem Originalcode in Abschnitt 2.3 erläutert. Dieser Abschnitt konzentriert sich deshalb auf Serverkonfiguration und gemeinsame Services. `web_app.py` enthält Webkanal-Logik, während `weather_service.py` und `booking_service.py` kanalunabhängige Geschäftslogik bereitstellen.
 
-### 2.12.1 Funktion _is_truthy()
+### 2.13.1 Funktion _is_truthy()
 
 Die Hilfsfunktion interpretiert textbasierte Umgebungsvariablen für `FLASK_DEBUG`.
 
@@ -636,7 +703,7 @@ def _is_truthy(value: str) -> bool:
 
 Als Eingabe erhält `_is_truthy()` einen String und gibt einen booleschen Wert zurück. Durch Normalisierung von Leerraum und Groß-/Kleinschreibung werden übliche Wahrheitswerte zuverlässig erkannt. Die Funktion gehört in `web_app.py`, weil sie ausschließlich die lokale Flask-Konfiguration unterstützt.
 
-### 2.12.2 Funktion main() in web_app.py
+### 2.13.2 Funktion main() in web_app.py
 
 `main()` liest die Serverkonfiguration und startet den lokalen Flask-Entwicklungsserver.
 
@@ -656,7 +723,7 @@ def main() -> None:
 
 Die Funktion benötigt keine Parameter und liefert keinen fachlichen Rückgabewert. Sie lädt Umgebungsvariablen, liest `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG`, wandelt den Port kontrolliert in eine Ganzzahl um und verwendet bei ungültiger Eingabe Port 5000. Abschließend startet sie Flask. Als Einstiegspunkt des Webkanals gehört diese Konfiguration in `web_app.py`.
 
-### 2.12.3 Funktion _demo_weather(city)
+### 2.13.3 Funktion _demo_weather(city)
 
 Die interne Hilfsfunktion stellt eine deterministische Alternative zur externen Wetter-API bereit.
 
@@ -686,7 +753,7 @@ def _demo_weather(city: str) -> str:
 
 `_demo_weather()` erhält einen bereinigten Stadtnamen, liest `data/demo_weather_data.json` und sucht den Stadteintrag unabhängig von Groß- und Kleinschreibung. Für unbekannte Städte wird `default` verwendet. Kann die Datei nicht gelesen oder ausgewertet werden, liefern sichere Python-Standardwerte weiterhin eine deutsche Antwort. Damit bleibt die Bewertung ohne API-Key reproduzierbar. Da diese Rückfalllogik von beiden Kanälen nutzbar ist, befindet sie sich in `weather_service.py`.
 
-### 2.12.4 Funktion get_weather(city)
+### 2.13.4 Funktion get_weather(city)
 
 `get_weather()` bildet den zentralen Einstiegspunkt für Live- und Demo-Wetteranfragen.
 
@@ -726,7 +793,7 @@ def get_weather(city: str) -> str:
 
 Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie eine leere Eingabe. Danach lädt sie `OPENWEATHER_API_KEY`; ohne Schlüssel delegiert sie an `_demo_weather()`. Mit Schlüssel sendet sie Stadt, metrische Einheiten und deutsche Spracheinstellung an OpenWeatherMap. HTTP-Fehler und fehlende oder ungültige Antwortfelder werden gemeinsam abgefangen und in eine verständliche Rückfallmeldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
 
-### 2.12.5 Funktion create_booking_confirmation(date, time)
+### 2.13.5 Funktion create_booking_confirmation(date, time)
 
 Der Buchungsservice validiert die beiden Eingaben und erzeugt eine ausdrücklich fiktive Bestätigung.
 
