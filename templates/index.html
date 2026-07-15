@@ -8,12 +8,14 @@
 </head>
 <body>
     <main class="container">
+        <!-- Seitenkopf mit Titel und kurzer Einordnung der Anwendung -->
         <header>
             <p class="eyebrow">VelpTEC AI-Development · Teilprüfung 2</p>
             <h1>Multi-Channel Chatbot</h1>
             <p>Fragen Sie das Wetter ab oder erstellen Sie eine fiktive Terminbuchung.</p>
         </header>
 
+        <!-- Wetterformular -->
         <section class="card" aria-labelledby="weather-heading">
             <h2 id="weather-heading">Wetteranfrage</h2>
             <form id="weather-form">
@@ -21,9 +23,11 @@
                 <input id="city" name="city" type="text" placeholder="z. B. Berlin" required>
                 <button type="submit">Wetter abrufen</button>
             </form>
+            <!-- Ergebnisbereich wird asynchron durch app.js aktualisiert. -->
             <p id="weather-result" class="result" role="status" aria-live="polite"></p>
         </section>
 
+        <!-- Formular für eine fiktive Terminbuchung -->
         <section class="card" aria-labelledby="appointment-heading">
             <h2 id="appointment-heading">Terminbuchung</h2>
             <form id="appointment-form">
@@ -33,9 +37,11 @@
                 <input id="time" name="time" type="time" required>
                 <button type="submit">Termin fiktiv buchen</button>
             </form>
+            <!-- Ergebnisbereich wird asynchron durch app.js aktualisiert. -->
             <p id="appointment-result" class="result" role="status" aria-live="polite"></p>
         </section>
     </main>
+    <!-- Lädt die AJAX-Logik nach der vollständigen Seitenstruktur. -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

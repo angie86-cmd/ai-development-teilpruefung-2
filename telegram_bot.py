@@ -1,4 +1,6 @@
-"""Telegram-Kanal des Multi-Channel-Chatbots."""
+# Telegram-Adapter für Befehle, Argumente und Antworten des Chatbots.
+# Er verarbeitet Telegram-Befehle und delegiert Wetter- und Buchungslogik an
+# gemeinsame Services, damit beide Kanäle dieselben fachlichen Regeln nutzen.
 
 import os
 
@@ -10,8 +12,8 @@ from booking_service import create_booking_confirmation
 from weather_service import get_weather
 
 
+# Begrüßt Benutzerinnen und Benutzer und nennt die wichtigsten Befehle.
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Begrüßt Benutzerinnen und Benutzer und nennt die wichtigsten Befehle."""
     del context  # Der Kontext wird für diesen Befehl nicht benötigt.
     if update.message:
         await update.message.reply_text(
@@ -22,8 +24,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
 
 
+# Zeigt die Syntax der unterstützten Befehle mit Beispielen an.
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Zeigt die Syntax der unterstützten Befehle an."""
     del context
     if update.message:
         await update.message.reply_text(
@@ -35,18 +37,18 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
 
+# Liest die Stadt aus den Befehlsargumenten und ruft den Wetterservice auf.
 async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Liefert Wetterinformationen für die als Argument übergebene Stadt."""
     city = " ".join(context.args).strip()
     response = get_weather(city)
     if update.message:
         await update.message.reply_text(response)
 
 
+# Liest Datum und Uhrzeit und ruft den gemeinsamen Buchungsservice auf.
 async def appointment_command(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Erstellt anhand von Datum und Uhrzeit eine fiktive Terminbestätigung."""
     date = context.args[0] if len(context.args) >= 1 else ""
     time = context.args[1] if len(context.args) >= 2 else ""
     response = create_booking_confirmation(date, time)
@@ -54,8 +56,10 @@ async def appointment_command(
         await update.message.reply_text(response)
 
 
+# Lädt lokale Umgebungsvariablen, prüft das Telegram-Token und startet den Bot.
+# Das Token ist ein Secret und darf nicht in Code, README oder GitHub stehen.
+# Polling vereinfacht den lokalen Prototyp, da kein öffentlicher Webhook nötig ist.
 def main() -> None:
-    """Konfiguriert den Bot und startet ihn im Polling-Modus."""
     load_dotenv()
     token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not token:

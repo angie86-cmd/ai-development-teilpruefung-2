@@ -1,3 +1,4 @@
+/* Basislayout und globale Darstellung */
 :root {
     color-scheme: light;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -13,6 +14,7 @@ body {
     background: linear-gradient(145deg, #e8f1fb, #f8fafc);
 }
 
+/* Container und Seitenkopf */
 .container {
     width: min(760px, calc(100% - 2rem));
     margin: 0 auto;
@@ -35,6 +37,7 @@ h1 {
     text-transform: uppercase;
 }
 
+/* Inhaltskarten */
 .card {
     margin: 1.25rem 0;
     padding: 1.5rem;
@@ -45,6 +48,8 @@ h1 {
 }
 
 .card h2 { margin-top: 0; }
+
+/* Formulare und Eingabefelder */
 form { display: grid; gap: 0.7rem; }
 label { font-weight: 650; }
 
@@ -61,6 +66,7 @@ input:focus {
     border-color: #2776b8;
 }
 
+/* Aktionsschaltflächen */
 button {
     margin-top: 0.3rem;
     border: 0;
@@ -72,6 +78,7 @@ button {
 
 button:hover { background: #105487; }
 
+/* Asynchron aktualisierte Ergebnismeldungen */
 .result {
     min-height: 1.5rem;
     margin: 1rem 0 0;

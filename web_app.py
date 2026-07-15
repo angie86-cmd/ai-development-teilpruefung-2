@@ -1,4 +1,6 @@
-"""Flask-Webkanal des Multi-Channel-Chatbots."""
+# Flask-Webkanal des Multi-Channel-Chatbots.
+# Er stellt eine HTML-Seite und zwei JSON-Endpunkte bereit. Fachliche Wetter-
+# und Buchungslogik wird nicht dupliziert, sondern an gemeinsame Services delegiert.
 
 import os
 
@@ -11,22 +13,22 @@ from weather_service import get_weather
 app = Flask(__name__)
 
 
+# Rendert für die Startseite das Template templates/index.html.
 @app.get("/")
 def index():
-    """Rendert die Bedienoberfläche des Webkanals."""
     return render_template("index.html")
 
 
+# Empfängt POST-JSON mit "city" und gibt die Antwort von get_weather() als JSON aus.
 @app.post("/api/weather")
 def weather_api():
-    """Verarbeitet eine Wetteranfrage und gibt eine JSON-Antwort zurück."""
     payload = request.get_json(silent=True) or {}
     return jsonify({"message": get_weather(str(payload.get("city", "")))})
 
 
+# Empfängt POST-JSON mit "date" und "time" und delegiert an den Buchungsservice.
 @app.post("/api/appointment")
 def appointment_api():
-    """Verarbeitet eine fiktive Terminbuchung als JSON-Anfrage."""
     payload = request.get_json(silent=True) or {}
     message = create_booking_confirmation(
         str(payload.get("date", "")), str(payload.get("time", ""))
@@ -34,13 +36,13 @@ def appointment_api():
     return jsonify({"message": message})
 
 
+# Wandelt Textwerte aus FLASK_DEBUG zuverlässig in einen booleschen Wert um.
 def _is_truthy(value: str) -> bool:
-    """Wandelt übliche Textwerte einer Umgebungsvariable in bool um."""
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+# Lädt die lokale Serverkonfiguration und startet den Flask-Entwicklungsserver.
 def main() -> None:
-    """Startet den lokalen Flask-Entwicklungsserver."""
     load_dotenv()
     host = os.getenv("FLASK_HOST", "127.0.0.1")
     port_text = os.getenv("FLASK_PORT", "5000")

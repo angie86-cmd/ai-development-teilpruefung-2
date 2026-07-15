@@ -1,4 +1,6 @@
-"""Kanalunabhängiger Service für Wetterinformationen."""
+# Kanalunabhängiger Service für Wetterinformationen.
+# Telegram und Web verwenden dieselbe Funktion, damit die Antworten konsistent sind.
+# API-Schlüssel werden ausschließlich aus der Umgebung gelesen und nie hartcodiert.
 
 import os
 
@@ -9,16 +11,17 @@ OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 REQUEST_TIMEOUT_SECONDS = 10
 
 
+# Erzeugt feste Demo-Daten und macht das Projekt ohne reale Zugangsdaten reproduzierbar.
 def _demo_weather(city: str) -> str:
-    """Erzeugt reproduzierbare Wetterdaten für Tests ohne API-Schlüssel."""
     return (
         f"Demo-Wetter für {city}: 21 °C, leicht bewölkt. "
         "Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden."
     )
 
 
+# Nutzt mit OPENWEATHER_API_KEY die Live-API und andernfalls den Demo-Modus.
+# API- und Datenfehler werden als verständliche deutsche Rückfallmeldung behandelt.
 def get_weather(city: str) -> str:
-    """Gibt aktuelles Wetter oder deterministische Demo-Daten zurück."""
     normalized_city = (city or "").strip()
     if not normalized_city:
         return "Bitte geben Sie eine Stadt an, zum Beispiel: Berlin."
