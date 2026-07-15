@@ -10,9 +10,9 @@ Entwickle einen Multi-Channel Chatbot, der sowohl über Telegram als auch über 
 
 Führe folgende Schritte durch:
 
-Erstelle ein Python-Skript für den Telegram Bot, der die Telegram Bot API verwendet. Der Bot soll auf einfache Befehle wie “/wetter [Stadt]” reagieren, indem er aktuelle Wetterinformationen aus einer öffentlichen API (z.B. OpenWeatherMap API) abruft. Für “/termin [Datum] [Zeit]” soll der Bot eine fiktive Buchungsbestätigung senden.
+1. Erstelle ein Python-Skript für den Telegram Bot, der die Telegram Bot API verwendet. Der Bot soll auf einfache Befehle wie “/wetter [Stadt]” reagieren, indem er aktuelle Wetterinformationen aus einer öffentlichen API (z.B. OpenWeatherMap API) abruft. Für “/termin [Datum] [Zeit]” soll der Bot eine fiktive Buchungsbestätigung senden.
 
-Entwickle eine einfache Webanwendung mit Flask, die ein ähnliches Verhalten wie der Telegram Bot zeigt. Die Webanwendung soll ein Formular für Wetteranfragen und Terminbuchungen enthalten. Nutze AJAX, um die Anfragen asynchron zu bearbeiten und die Antworten ohne Neuladen der Seite anzuzeigen.
+2. Entwickle eine einfache Webanwendung mit Flask, die ein ähnliches Verhalten wie der Telegram Bot zeigt. Die Webanwendung soll ein Formular für Wetteranfragen und Terminbuchungen enthalten. Nutze AJAX, um die Anfragen asynchron zu bearbeiten und die Antworten ohne Neuladen der Seite anzuzeigen.
 
 ---
 
@@ -26,28 +26,32 @@ Das Projekt wird mit Git versioniert und kann über GitHub unter [https://github
 
 Der Telegram-Bot wurde über BotFather mit folgender öffentlich sichtbarer Konfiguration eingerichtet:
 
-| Einstellung | Konfiguration |
-|---|---|
-| Bot-Benutzername | `@angie_weather_booking_bot` |
-| Bot-Name | `AngieWeatherAppointmentBot` |
-| About | Multi-Channel Chatbot für Wetterinformationen und fiktive Terminbuchungen. |
-| Description | Dieser Bot ist ein Prototyp für die AI-Development Teilprüfung 2. Er beantwortet einfache Wetteranfragen und erstellt fiktive Terminbuchungsbestätigungen. |
-| Befehle | `/start`, `/hilfe`, `/wetter Berlin`, `/termin 20.07.2026 14:00` |
-| Privacy Policy | [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa) |
+- **Bot-Benutzername:** `@angie_weather_booking_bot`
+- **Bot-Name:** `AngieWeatherAppointmentBot`
+- **About:** Multi-Channel Chatbot für Wetterinformationen und fiktive Terminbuchungen.
+- **Description:** Dieser Bot ist ein Prototyp für die AI-Development Teilprüfung 2. Er beantwortet einfache Wetteranfragen und erstellt fiktive Terminbuchungsbestätigungen.
+- **Befehle:** `/start`, `/hilfe`, `/wetter Berlin`, `/termin 20.07.2026 14:00`
+- **Privacy Policy:** [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa)
 
 Die hinterlegten Befehlsbeschreibungen lauten `/start - Bot starten`, `/hilfe - Hilfe anzeigen`, `/wetter Berlin - Wetterinformationen abrufen` und `/termin 20.07.2026 14:00 - Fiktiven Termin buchen`. Für den akademischen Prototyp wird die Telegram Standard Privacy Policy verwendet. Die Anwendung speichert keine personenbezogenen Daten dauerhaft, erstellt keine echten Termine und fordert keine sensiblen Daten an.
 
+**Abbildung 1: Telegram BotFather-Konfiguration**
+
 ![Telegram Bot Konfiguration](Bilder/Screenshot%2001_BotConfiguration.png)
 
-*Der Screenshot zeigt die BotFather-Konfiguration des Telegram-Bots.*
+Abbildung 1 zeigt die BotFather-Konfiguration des Telegram-Bots.
+
+**Abbildung 2: Telegram Bot Profilbild**
 
 ![Telegram Bot Profilbild](Bilder/ProfilePic.png)
 
-*`ProfilePic.png` ist das Profilbild des Bots.*
+Abbildung 2 zeigt das Profilbild des Bots.
+
+**Abbildung 3: Telegram Bot Description Picture**
 
 ![Telegram Bot Description Picture](Bilder/DescriptionPic.png)
 
-*`DescriptionPic.png` wird im Bereich „What can this bot do?“ angezeigt.*
+Abbildung 3 zeigt das Bild, das im Bereich „What can this bot do?“ angezeigt wird.
 
 ## Projektstruktur und Versionierung
 
@@ -99,6 +103,10 @@ ai-development-teilpruefung-2/
 | `.gitignore` | Ausschluss lokaler Umgebung, Caches, Secrets und ZIP-Prüfverzeichnis |
 | `submission/Angie_Angarita_Soto_Teilprüfung 2.zip` | Finale Datei zur Einreichung |
 
+Die gewählte Struktur trennt Dokumentation, Telegram-Kanallogik, Web-Kanallogik, gemeinsame Geschäftslogik, Frontend-Dateien, Konfigurationsbeispiele, Bildnachweise und Abgabedateien klar voneinander. `telegram_bot.py` enthält ausschließlich die Telegram-spezifische Kanallogik. Der Webkanal verteilt sich auf `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die von beiden Kanälen verwendeten fachlichen Funktionen liegen zentral in `weather_service.py` und `booking_service.py`. Dadurch wird doppelter Code vermieden und das Projekt lässt sich leichter testen, warten und erweitern.
+
+Weitere Kanäle wie WhatsApp Business, Microsoft Teams oder Slack könnten später als zusätzliche Adapter ergänzt werden, ohne die zentrale Geschäftslogik neu zu schreiben. `Bilder/` dokumentiert die BotFather-Konfiguration und die visuelle Einrichtung des Bots; `submission/` enthält das finale ZIP-Archiv. Git und GitHub dienen der nachvollziehbaren Versionierung und Dokumentation des Entwicklungsprozesses.
+
 ## Gitignore und lokale Entwicklungsdateien
 
 Die Regeln in `.gitignore` trennen lokale oder automatisch erzeugte Dateien von den fachlich relevanten Projektbestandteilen:
@@ -113,13 +121,13 @@ Die Regeln in `.gitignore` trennen lokale oder automatisch erzeugte Dateien von 
 
 Git protokolliert die Entwicklung nachvollziehbar; GitHub dient als Remote-Repository. Lokale Laufzeitdateien wie `.venv`, `.env`, Python-Caches und `submission/check_zip/` werden ignoriert. Die ZIP-Abgabe enthält nur die freigegebenen Dateitypen und keine Versionsverwaltungsdaten.
 
-# a) Telegram Bot mit Telegram Bot API
+# 1. Telegram Bot mit Telegram Bot API
 
-## a.1 Ziel des Telegram-Bots
+## 1.1 Ziel des Telegram-Bots
 
 Der Telegram-Kanal in `telegram_bot.py` ermöglicht Wetterabfragen und fiktive Terminbuchungen direkt im Messenger. Begrüßung und Hilfe erläutern die Verwendung. Die fachlichen Antworten stammen aus den gemeinsamen Services.
 
-## a.2 Architektur des Telegram-Kanals
+## 1.2 Architektur des Telegram-Kanals
 
 ```text
 Telegram User
@@ -133,7 +141,7 @@ weather_service.py / booking_service.py
 Bot Response
 ```
 
-## a.3 Unterstützte Befehle
+## 1.3 Unterstützte Befehle
 
 Der Bot nutzt `python-telegram-bot` im Stil der Version 20 oder neuer mit `ApplicationBuilder`, `CommandHandler`, `ContextTypes` und asynchronen Handlerfunktionen.
 
@@ -146,23 +154,23 @@ Der Bot nutzt `python-telegram-bot` im Stil der Version 20 oder neuer mit `Appli
 | `/wetter [Stadt]` | Fragt Wetter- oder Demo-Wetterdaten ab | `/wetter Berlin` |
 | `/termin [Datum] [Zeit]` | Erstellt eine fiktive Terminbestätigung | `/termin 20.07.2026 14:00` |
 
-## a.4 BotFather-Konfiguration
+## 1.4 BotFather-Konfiguration
 
 Der Bot wurde in BotFather unter dem Namen `AngieWeatherAppointmentBot` und dem Benutzernamen `@angie_weather_booking_bot` konfiguriert. About-Text, ausführliche Beschreibung, Befehlsübersicht, Profilbild, Description Picture und die Telegram Standard Privacy Policy wurden dort hinterlegt. Die drei Dateien im Ordner `Bilder/` dokumentieren diese Konfiguration, ohne ein Token oder andere Secrets offenzulegen.
 
-## a.5 Verwendung gemeinsamer Geschäftslogik
+## 1.5 Verwendung gemeinsamer Geschäftslogik
 
 `weather_command()` verbindet alle Befehlsargumente zu einem Stadtnamen und ruft `get_weather()` auf. `appointment_command()` übergibt Datum und Uhrzeit an `create_booking_confirmation()`. Fachliche Logik wird nicht im Telegram-Adapter dupliziert.
 
-## a.6 Authentifizierung über Umgebungsvariable
+## 1.6 Authentifizierung über Umgebungsvariable
 
 Beim Start lädt `python-dotenv` optionale lokale Einstellungen. Das Telegram-Token wird ausschließlich mit `os.getenv("TELEGRAM_BOT_TOKEN")` gelesen und nicht hartcodiert. `.env.example` enthält nur einen Platzhalter; `.env` ist durch `.gitignore` ausgeschlossen.
 
-## a.7 Umgang mit fehlendem Telegram Token
+## 1.7 Umgang mit fehlendem Telegram Token
 
 Ist `TELEGRAM_BOT_TOKEN` leer oder nicht vorhanden, gibt `main()` eine klare deutsche Meldung aus und kehrt kontrolliert zurück. Dadurch entsteht kein unverständlicher Verbindungsfehler und das Projekt bleibt ohne echte Zugangsdaten testbar.
 
-## a.8 Python-Code und zentrale Funktionen
+## 1.8 Python-Code und zentrale Funktionen
 
 Die vier Handler sind als `async def` definiert: `start_command`, `help_command`, `weather_command` und `appointment_command`. Antworten werden mit `await update.message.reply_text(...)` versendet. Beispiel für die Delegation:
 
@@ -176,21 +184,21 @@ async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 `main()` lädt die Konfiguration, prüft das Token, baut die `Application`, registriert alle Handler und startet anschließend das Polling. Die Handler bleiben klein und delegieren fachliche Aufgaben an die Services.
 
-## a.9 Begründung der Polling-Variante
+## 1.9 Begründung der Polling-Variante
 
 Für den lokalen Prototyp nutzt `python-telegram-bot` bewusst Polling. Der Bot fragt neue Nachrichten fortlaufend bei Telegram ab. Dies vermeidet die Einrichtung einer öffentlich erreichbaren HTTPS-Adresse und eines Webhooks. Für eine produktive, skalierte Bereitstellung könnte später ein Webhook eingesetzt werden.
 
-## a.10 Datenschutz und Bot Privacy Policy
+## 1.10 Datenschutz und Bot Privacy Policy
 
 In BotFather ist die [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa) konfiguriert. Sie ist für diesen akademischen Prototyp angemessen, weil die Anwendung keine personenbezogenen Daten dauerhaft speichert, keine realen Termine erzeugt und keine sensiblen Daten anfordert. Echte Tokens und API-Schlüssel werden ausschließlich lokal über Umgebungsvariablen bereitgestellt und durch `.gitignore` von Git ausgeschlossen.
 
-# b) Flask Webanwendung mit AJAX
+# 2. Flask Webanwendung mit AJAX
 
-## b.1 Ziel der Webanwendung
+## 2.1 Ziel der Webanwendung
 
 Die Flask-Webanwendung bietet dieselben zwei Anwendungsfälle wie Telegram über eine leicht bedienbare Browseroberfläche. Dadurch lässt sich der Chatbot auch ohne Telegram-Konto demonstrieren.
 
-## b.2 Architektur der Webanwendung
+## 2.2 Architektur der Webanwendung
 
 ```text
 Browser
@@ -208,7 +216,7 @@ JSON Response
 Result shown on page
 ```
 
-## b.3 Flask-Routen
+## 2.3 Flask-Routen
 
 `web_app.py` implementiert eine HTML-Route und zwei JSON-Endpunkte.
 
@@ -220,23 +228,23 @@ Result shown on page
 | `/api/weather` | POST | Liest `city` aus JSON und gibt die Wetterantwort als JSON zurück |
 | `/api/appointment` | POST | Liest `date` und `time` aus JSON und gibt die Terminantwort als JSON zurück |
 
-## b.4 AJAX-Verarbeitung
+## 2.4 AJAX-Verarbeitung
 
 `static/app.js` registriert nach `DOMContentLoaded` Ereignisbehandlungen für beide Formulare. Die Hilfsfunktion `postJson()` sendet die Eingaben mit `fetch`, der Methode POST und dem Content-Type `application/json` an Flask. Netzwerk- und HTTP-Fehler werden abgefangen und verständlich angezeigt.
 
-## b.5 Wetterformular
+## 2.5 Wetterformular
 
 Das Wetterformular in `templates/index.html` nimmt eine Stadt entgegen. Nach dem Absenden wird `{ "city": "Berlin" }` an `/api/weather` übertragen. Der Endpunkt ruft `get_weather()` auf und sendet dessen Ergebnis zurück.
 
-## b.6 Terminformular
+## 2.6 Terminformular
 
 Das Terminformular erfasst Datum und Uhrzeit. Die Werte werden als JSON an `/api/appointment` gesendet und durch `create_booking_confirmation()` geprüft. Der Hinweis im Formular macht die erwarteten Formate transparent.
 
-## b.7 Gemeinsame Nutzung der Services
+## 2.7 Gemeinsame Nutzung der Services
 
 Auch `web_app.py` enthält keine eigene Wetter- oder Buchungslogik. Die Anwendung importiert dieselben Servicefunktionen wie der Telegram-Bot und bleibt dadurch ein schlanker Kanaladapter.
 
-## b.8 Antwort ohne Neuladen der Seite
+## 2.8 Antwort ohne Neuladen der Seite
 
 `event.preventDefault()` verhindert das reguläre Neuladen beim Absenden. Nach Abschluss des `fetch`-Aufrufs setzt JavaScript den Text im jeweiligen Ergebnisbereich. `aria-live="polite"` sorgt zusätzlich dafür, dass unterstützende Technologien aktualisierte Antworten ankündigen können.
 
