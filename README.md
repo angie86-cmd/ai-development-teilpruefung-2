@@ -188,15 +188,102 @@ In BotFather ist die [Telegram Standard Privacy Policy](https://telegram.org/pri
 
 ## 1.9 Erklärung des Codes für den Telegram-Kanal
 
-`telegram_bot.py` enthält ausschließlich Telegram-spezifische Kanallogik. Die vier Handler sind als `async def` definiert, weil `python-telegram-bot` ab Version 20 asynchrone Handler verwendet. Sie erhalten ein Telegram-`Update` und einen `Context` und senden Antworten mit `await update.message.reply_text(...)`. Wetter- und Terminlogik werden nicht in diesem Adapter implementiert, sondern an `weather_service.py` und `booking_service.py` delegiert. Erläuterungen im Python-Code stehen als `#`-Kommentare oberhalb der zugehörigen Funktionen und nicht als Docstrings.
+`telegram_bot.py` enthält ausschließlich Telegram-spezifische Kanallogik. Die Handler sind als `async def` definiert, weil `python-telegram-bot` ab Version 20 asynchrone Handler verwendet. Wetter- und Terminlogik werden nicht im Telegram-Adapter implementiert, sondern an `weather_service.py` und `booking_service.py` delegiert.
 
-1. **`main()`** benötigt keine Parameter und liefert keinen Rückgabewert. Die Funktion lädt die lokale Konfiguration, prüft `TELEGRAM_BOT_TOKEN`, erstellt die `Application`, registriert alle Command-Handler und startet das Polling. Sie gehört als Einstiegspunkt in `telegram_bot.py`, weil sie den gesamten Telegram-Kanal initialisiert. Polling ermöglicht dabei lokale Tests ohne öffentlichen Server oder Webhook.
-2. **`start_command(update, context)`** verarbeitet `/start`. Der Handler erhält das eingehende Telegram-Update und den Kontext und sendet eine Begrüßung mit Nutzungshinweisen zurück. Begrüßung und Antworttransport sind kanalspezifisch und gehören deshalb in den Telegram-Adapter.
-3. **`help_command(update, context)`** verarbeitet `/hilfe` und gibt die unterstützten Befehle sowie Eingabeformate aus. Die Funktion beschreibt die Bedienoberfläche des Telegram-Kanals, enthält jedoch keine fachlichen Regeln.
-4. **`weather_command(update, context)`** liest die Argumente hinter `/wetter`, bildet daraus den Stadtnamen und übergibt ihn an `get_weather()`. Der zurückgegebene deutsche Antworttext wird über Telegram gesendet; die Wetterermittlung verbleibt vollständig im gemeinsamen Wetterservice.
-5. **`appointment_command(update, context)`** liest Datum und Uhrzeit hinter `/termin` und ruft `create_booking_confirmation()` auf. Der Handler sendet die Bestätigung oder Fehlermeldung zurück und übernimmt ausschließlich die Übersetzung zwischen Telegram-Befehl und gemeinsamem Buchungsservice.
+### 1.9.1 Funktion main()
 
-Die geordnete Aufteilung hält die Handler klein, ermöglicht konsistente Antworten in beiden Kanälen und trennt Telegram-Kommunikation klar von der wiederverwendbaren Geschäftslogik.
+`main()` initialisiert den vollständigen Telegram-Kanal und bildet den Einstiegspunkt des Skripts.
+
+```python
+def main() -> None:
+    load_dotenv()
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token:
+        print(
+            "Telegram-Bot wurde nicht gestartet: Die Umgebungsvariable "
+            "TELEGRAM_BOT_TOKEN fehlt. Bitte hinterlegen Sie lokal ein gültiges "
+            "Token (nicht im Repository)."
+        )
+        return
+
+    application = ApplicationBuilder().token(token).build()
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("hilfe", help_command))
+    application.add_handler(CommandHandler("wetter", weather_command))
+    application.add_handler(CommandHandler("termin", appointment_command))
+    print("Telegram-Bot wird im Polling-Modus gestartet.")
+    application.run_polling()
+```
+
+Die Funktion benötigt keine Parameter und besitzt keinen fachlichen Rückgabewert. Sie lädt lokale Umgebungsvariablen, prüft das Bot-Token, erstellt die Telegram-`Application`, registriert die vier Handler und startet das Polling. Ohne Token beendet sie sich kontrolliert. Diese Initialisierung gehört in `telegram_bot.py`, weil sie ausschließlich den Telegram-Kanal konfiguriert; fachliche Services werden erst durch die registrierten Handler aufgerufen.
+
+### 1.9.2 Funktion start_command()
+
+Der Start-Handler begrüßt Benutzerinnen und Benutzer und nennt die zentralen Nutzungsmöglichkeiten.
+
+```python
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    del context  # Der Kontext wird für diesen Befehl nicht benötigt.
+    if update.message:
+        await update.message.reply_text(
+            "Willkommen beim Multi-Channel-Chatbot!\n"
+            "Mit /wetter [Stadt] erhalten Sie Wetterinformationen.\n"
+            "Mit /termin [Datum] [Zeit] buchen Sie einen fiktiven Termin.\n"
+            "Weitere Informationen: /hilfe"
+        )
+```
+
+Eingaben sind das Telegram-`Update` und der von der Bibliothek bereitgestellte `Context`. Da für `/start` keine Argumente benötigt werden, wird der Kontext verworfen. Als Effekt sendet die Funktion eine Telegram-Nachricht; einen Rückgabewert erzeugt sie nicht. Sie gehört in den Kanaladapter, weil Begrüßung und Nachrichtentransport Telegram-spezifisch sind und kein gemeinsamer Service benötigt wird.
+
+### 1.9.3 Funktion help_command()
+
+`help_command()` dokumentiert die verfügbaren Telegram-Befehle unmittelbar im Chat.
+
+```python
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    del context
+    if update.message:
+        await update.message.reply_text(
+            "Verfügbare Befehle:\n"
+            "/start – Begrüßung anzeigen\n"
+            "/hilfe – Hilfe anzeigen\n"
+            "/wetter [Stadt] – z. B. /wetter Berlin\n"
+            "/termin [DD.MM.YYYY] [HH:MM] – z. B. /termin 20.07.2026 14:00"
+        )
+```
+
+Auch dieser asynchrone Handler erhält `Update` und `Context`, benötigt jedoch keine Befehlsargumente. Er sendet einen formatierten Hilfetext und hat keinen fachlichen Rückgabewert. Die Funktion bleibt in `telegram_bot.py`, weil sie die Telegram-Bedienoberfläche beschreibt und weder Wetter- noch Buchungslogik ausführt.
+
+### 1.9.4 Funktion weather_command()
+
+Der Wetter-Handler übersetzt den Telegram-Befehl in einen Aufruf des gemeinsamen Wetterservices.
+
+```python
+async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    city = " ".join(context.args).strip()
+    response = get_weather(city)
+    if update.message:
+        await update.message.reply_text(response)
+```
+
+Die Eingabe besteht aus den Argumenten hinter `/wetter`, die zu einem Stadtnamen verbunden werden. `get_weather()` liefert den deutschen Antworttext, den der Handler anschließend über Telegram sendet. Die Funktion gehört als Übersetzer zwischen Telegram und Service in `telegram_bot.py`; Wetterabfrage, Demo-Modus und Fehlerbehandlung bleiben vollständig in `weather_service.py`.
+
+### 1.9.5 Funktion appointment_command()
+
+Der Termin-Handler liest Datum und Uhrzeit und delegiert die Validierung an den Buchungsservice.
+
+```python
+async def appointment_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    date = context.args[0] if len(context.args) >= 1 else ""
+    time = context.args[1] if len(context.args) >= 2 else ""
+    response = create_booking_confirmation(date, time)
+    if update.message:
+        await update.message.reply_text(response)
+```
+
+Als Eingabe dienen die ersten beiden Befehlsargumente; fehlende Werte werden als leere Strings an den Service weitergegeben. `create_booking_confirmation()` erzeugt eine Fehlermeldung oder fiktive Bestätigung, die der Handler über Telegram ausgibt. Die Funktion bleibt kanalspezifisch, während Formatprüfung und Bestätigung in `booking_service.py` wiederverwendbar implementiert sind.
 
 # 2. Flask-Webanwendung mit AJAX
 
@@ -234,15 +321,139 @@ Result shown on page
 | `/api/weather` | POST | Liest `city` aus JSON und gibt die Wetterantwort als JSON zurück |
 | `/api/appointment` | POST | Liest `date` und `time` aus JSON und gibt die Terminantwort als JSON zurück |
 
-Die zugehörigen Python-Funktionen bilden ausschließlich den Webkanal ab:
+### 2.3.1 Route `/`
 
-- **`index()`** verarbeitet einen GET-Aufruf auf `/`, benötigt keine fachlichen Eingabedaten und gibt das gerenderte Template `templates/index.html` zurück. Die Funktion gehört zum Webkanal, weil sie die Browseroberfläche bereitstellt.
-- **`weather_api()`** verarbeitet POST-JSON auf `/api/weather`, liest das Feld `city` und übergibt dessen Wert an die gemeinsame Funktion `get_weather()`. Als Ausgabe liefert sie eine JSON-Antwort mit dem erzeugten Meldungstext. Flask übernimmt hier nur HTTP- und JSON-Verarbeitung; die Wetterlogik bleibt im Service.
-- **`appointment_api()`** verarbeitet POST-JSON auf `/api/appointment`, liest `date` und `time` und delegiert an `create_booking_confirmation()`. Der Bestätigungs- oder Fehlertext wird als JSON zurückgegeben. Damit gehört auch diese Funktion als Übersetzer zwischen HTTP-Anfrage und gemeinsamer Geschäftslogik zum Webkanal.
+Die Startseitenroute stellt die Benutzeroberfläche aus `templates/index.html` bereit.
+
+```python
+# Rendert für die Startseite das Template templates/index.html.
+@app.get("/")
+def index():
+    return render_template("index.html")
+```
+
+`index()` verarbeitet einen GET-Aufruf ohne fachliche Eingabedaten und gibt das gerenderte HTML-Template zurück. Die Funktion gehört zu `web_app.py`, weil sie die Browseroberfläche des Webkanals ausliefert und keine gemeinsame Geschäftslogik benötigt.
+
+### 2.3.2 Route `/api/weather`
+
+Der Wetter-Endpunkt akzeptiert eine POST-Anfrage mit dem JSON-Feld `city`.
+
+```python
+# Empfängt POST-JSON mit "city" und gibt die Antwort von get_weather() als JSON aus.
+@app.post("/api/weather")
+def weather_api():
+    payload = request.get_json(silent=True) or {}
+    return jsonify({"message": get_weather(str(payload.get("city", "")))})
+```
+
+`weather_api()` liest den JSON-Inhalt fehlertolerant, übergibt den Stadtnamen an `get_weather()` und liefert dessen Text unter `message` als JSON zurück. Damit verarbeitet die Funktion ausschließlich HTTP und JSON; die eigentliche Wetterlogik verbleibt im kanalunabhängigen Service.
+
+### 2.3.3 Route `/api/appointment`
+
+Der Termin-Endpunkt akzeptiert POST-JSON mit `date` und `time`.
+
+```python
+# Empfängt POST-JSON mit "date" und "time" und delegiert an den Buchungsservice.
+@app.post("/api/appointment")
+def appointment_api():
+    payload = request.get_json(silent=True) or {}
+    message = create_booking_confirmation(
+        str(payload.get("date", "")), str(payload.get("time", ""))
+    )
+    return jsonify({"message": message})
+```
+
+`appointment_api()` liest Datum und Uhrzeit, ruft `create_booking_confirmation()` auf und gibt die Bestätigung oder Fehlermeldung als JSON aus. Der Endpunkt gehört zum Flask-Kanal, während Validierung und fiktive Buchung im gemeinsamen Service gekapselt bleiben.
 
 ## 2.4 AJAX-Verarbeitung
 
-`static/app.js` registriert nach `DOMContentLoaded` Ereignisbehandlungen für beide Formulare. Die Hilfsfunktion `postJson()` sendet die Eingaben mit `fetch`, der Methode POST und dem Content-Type `application/json` an Flask. Netzwerk- und HTTP-Fehler werden abgefangen und verständlich angezeigt.
+### 2.4.1 Initialisierung nach dem Laden der Seite
+
+`DOMContentLoaded` stellt sicher, dass Formulare und Ergebnisbereiche im DOM vorhanden sind, bevor JavaScript sie auswählt und Event Listener registriert. Die folgende gekürzte Struktur zeigt den äußeren Rahmen; die darin enthaltenen Funktionen und Handler werden anschließend vollständig wiedergegeben.
+
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+    const weatherForm = document.querySelector("#weather-form");
+    const appointmentForm = document.querySelector("#appointment-form");
+    const weatherResult = document.querySelector("#weather-result");
+    const appointmentResult = document.querySelector("#appointment-result");
+
+    // ...
+});
+```
+
+Die vier Konstanten referenzieren exakt die IDs aus `templates/index.html`. Dadurch werden Listener und Rückmeldungen erst verbunden, nachdem die Seitenstruktur geladen wurde.
+
+### 2.4.2 Funktion postJson(url, payload)
+
+Die interne Hilfsfunktion bündelt den wiederkehrenden asynchronen JSON-Aufruf an Flask.
+
+```javascript
+    async function postJson(url, payload) {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP-Fehler ${response.status}`);
+        }
+        return response.json();
+    }
+```
+
+`postJson()` erhält die Ziel-URL und ein Nutzdatenobjekt. `fetch` sendet dieses Objekt als JSON per POST. `response.ok` verhindert, dass HTTP-Fehler als erfolgreiche Antworten weiterverarbeitet werden. Bei Erfolg gibt die Funktion das asynchron geparste JSON zurück.
+
+### 2.4.3 AJAX-Verarbeitung der Wetteranfrage
+
+Der Submit-Handler verarbeitet das Wetterformular vollständig ohne Seitenneuladen.
+
+```javascript
+    weatherForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        weatherResult.textContent = "Wetterdaten werden geladen …";
+        try {
+            const data = await postJson("/api/weather", {
+                city: document.querySelector("#city").value,
+            });
+            // Zeigt die vom Flask-Endpunkt gelieferte JSON-Nachricht direkt an.
+            weatherResult.textContent = data.message;
+        } catch (error) {
+            console.error(error);
+            // Eine verständliche Meldung ersetzt technische Fehlerdetails für Nutzende.
+            weatherResult.textContent =
+                "Die Wetteranfrage konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.";
+        }
+    });
+```
+
+`event.preventDefault()` unterdrückt das reguläre Absenden und damit den Seitenreload. Während der Anfrage erscheint ein Ladetext. Anschließend wird die Stadt an `/api/weather` gesendet und `data.message` im Ergebnisbereich dargestellt. Netzwerk- und HTTP-Fehler führen zu einer nutzerfreundlichen Rückmeldung.
+
+### 2.4.4 AJAX-Verarbeitung der Terminbuchung
+
+Der zweite Submit-Handler überträgt Datum und Uhrzeit an den Termin-Endpunkt.
+
+```javascript
+    appointmentForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        appointmentResult.textContent = "Termin wird geprüft …";
+        try {
+            const data = await postJson("/api/appointment", {
+                date: document.querySelector("#date").value,
+                time: document.querySelector("#time").value,
+            });
+            // Aktualisiert den Termin-Ergebnisbereich mit der JSON-Antwort.
+            appointmentResult.textContent = data.message;
+        } catch (error) {
+            console.error(error);
+            // Auch Netzwerk- oder Serverfehler werden nutzerfreundlich dargestellt.
+            appointmentResult.textContent =
+                "Die Terminbuchung konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.";
+        }
+    });
+```
+
+Auch hier verhindert `event.preventDefault()` den Seitenreload. Der Handler sendet `date` und `time` an `/api/appointment`, zeigt die zurückgegebene Meldung an und behandelt Fehler mit einem verständlichen Text. Beide Handler erfüllen damit die geforderte asynchrone Bedienung der Webanwendung.
 
 ## 2.5 Wetterformular
 
@@ -328,18 +539,117 @@ Die Services können unabhängig von den Kanälen getestet und gewartet werden. 
 
 ## 2.12 Erklärung des Codes für die Webanwendung und die gemeinsamen Services
 
-`web_app.py` enthält ausschließlich die Logik des Webkanals, während `weather_service.py` und `booking_service.py` die gemeinsam verwendete Geschäftslogik bereitstellen. Die Python-Dateien verwenden für Erläuterungen gezielte `#`-Kommentare statt Docstrings. Die Funktionen sind wie folgt aufgeteilt:
+Die Routen `index()`, `weather_api()` und `appointment_api()` sind bereits mit ihrem Originalcode in Abschnitt 2.3 erläutert. Dieser Abschnitt konzentriert sich deshalb auf Serverkonfiguration und gemeinsame Services. `web_app.py` enthält Webkanal-Logik, während `weather_service.py` und `booking_service.py` kanalunabhängige Geschäftslogik bereitstellen.
 
-1. **`index()` in `web_app.py`** verarbeitet den GET-Aufruf auf `/`. Die Funktion benötigt keine fachlichen Eingabedaten und gibt das gerenderte Template `templates/index.html` zurück. Sie gehört in den Flask-Adapter, weil sie die Browseroberfläche bereitstellt.
-2. **`weather_api()` in `web_app.py`** verarbeitet POST-JSON auf `/api/weather`, liest `city` und übergibt den Wert an `get_weather()`. Als Ausgabe liefert sie eine JSON-Nachricht. Die Funktion verbindet HTTP und JSON mit dem kanalunabhängigen Wetterservice, ohne Wetterlogik zu duplizieren.
-3. **`appointment_api()` in `web_app.py`** verarbeitet POST-JSON auf `/api/appointment` und liest `date` sowie `time`. Sie delegiert an `create_booking_confirmation()` und gibt dessen Bestätigung oder Fehlermeldung als JSON zurück. Damit bleibt die Funktion auf die Webkanal-Übersetzung beschränkt.
-4. **`_is_truthy(value)` in `web_app.py`** erhält den Text einer Umgebungsvariable und gibt einen booleschen Wert zurück. Die Hilfsfunktion interpretiert `FLASK_DEBUG` eindeutig und gehört zur lokalen Flask-Serverkonfiguration.
-5. **`main()` in `web_app.py`** benötigt keine Parameter und liefert keinen fachlichen Rückgabewert. Sie lädt die Umgebungsvariablen, liest Host, Port und Debug-Modus, behandelt einen ungültigen Port und startet den Flask-Entwicklungsserver. Als Einstiegspunkt initialisiert sie den Webkanal.
-6. **`get_weather(city)` in `weather_service.py`** erhält einen Stadtnamen und gibt einen deutschen Wetter-, Demo- oder Fehlertext zurück. Die Funktion validiert die Eingabe, wählt den Betriebsmodus und verarbeitet die externe API-Antwort. Da sie keine Kanalobjekte kennt, unterstützt sie Web und Telegram gleichermaßen.
-7. **`_demo_weather(city)` in `weather_service.py`** erhält einen bereinigten Stadtnamen und erzeugt eine feste deutsche Demoantwort. Die interne Hilfsfunktion gehört zum Wetterservice und gewährleistet reproduzierbare Tests ohne OpenWeatherMap API-Key.
-8. **`create_booking_confirmation(date, time)` in `booking_service.py`** erhält Datum und Uhrzeit und gibt einen deutschen Fehler- oder Bestätigungstext zurück. Die Funktion kapselt Formatprüfung und fiktive Bestätigung unabhängig von Flask und Telegram.
+### 2.12.1 Funktion _is_truthy()
 
-Im Browser wartet `static/app.js` auf `DOMContentLoaded`, registriert die Formular-Handler und sendet mit `fetch` asynchrone POST-Anfragen. Nach der JSON-Antwort aktualisiert JavaScript die jeweiligen Ergebnisbereiche, ohne die Seite neu zu laden. Damit ergänzt das Skript den Flask-Adapter um die geforderte asynchrone Interaktion.
+Die Hilfsfunktion interpretiert textbasierte Umgebungsvariablen für `FLASK_DEBUG`.
+
+```python
+def _is_truthy(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+```
+
+Als Eingabe erhält `_is_truthy()` einen String und gibt einen booleschen Wert zurück. Durch Normalisierung von Leerraum und Groß-/Kleinschreibung werden übliche Wahrheitswerte zuverlässig erkannt. Die Funktion gehört in `web_app.py`, weil sie ausschließlich die lokale Flask-Konfiguration unterstützt.
+
+### 2.12.2 Funktion main() in web_app.py
+
+`main()` liest die Serverkonfiguration und startet den lokalen Flask-Entwicklungsserver.
+
+```python
+def main() -> None:
+    load_dotenv()
+    host = os.getenv("FLASK_HOST", "127.0.0.1")
+    port_text = os.getenv("FLASK_PORT", "5000")
+    debug = _is_truthy(os.getenv("FLASK_DEBUG", "False"))
+    try:
+        port = int(port_text)
+    except ValueError:
+        print(f"Ungültiger FLASK_PORT '{port_text}'. Es wird Port 5000 verwendet.")
+        port = 5000
+    app.run(host=host, port=port, debug=debug)
+```
+
+Die Funktion benötigt keine Parameter und liefert keinen fachlichen Rückgabewert. Sie lädt Umgebungsvariablen, liest `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG`, wandelt den Port kontrolliert in eine Ganzzahl um und verwendet bei ungültiger Eingabe Port 5000. Abschließend startet sie Flask. Als Einstiegspunkt des Webkanals gehört diese Konfiguration in `web_app.py`.
+
+### 2.12.3 Funktion _demo_weather(city)
+
+Die interne Hilfsfunktion stellt eine deterministische Alternative zur externen Wetter-API bereit.
+
+```python
+def _demo_weather(city: str) -> str:
+    return (
+        f"Demo-Wetter für {city}: 21 °C, leicht bewölkt. "
+        "Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden."
+    )
+```
+
+`_demo_weather()` erhält einen bereinigten Stadtnamen und gibt einen festen deutschen Wettertext zurück. Damit bleibt die Bewertung ohne API-Key reproduzierbar und es werden keine realen Zugangsdaten benötigt. Da diese Rückfalllogik zu Wetteranfragen gehört und von beiden Kanälen nutzbar ist, befindet sie sich in `weather_service.py`.
+
+### 2.12.4 Funktion get_weather(city)
+
+`get_weather()` bildet den zentralen Einstiegspunkt für Live- und Demo-Wetteranfragen.
+
+```python
+def get_weather(city: str) -> str:
+    normalized_city = (city or "").strip()
+    if not normalized_city:
+        return "Bitte geben Sie eine Stadt an, zum Beispiel: Berlin."
+
+    load_dotenv()
+    api_key = os.getenv("OPENWEATHER_API_KEY", "").strip()
+    if not api_key:
+        return _demo_weather(normalized_city)
+
+    params = {
+        "q": normalized_city,
+        "appid": api_key,
+        "units": "metric",
+        "lang": "de",
+    }
+    try:
+        response = requests.get(
+            OPENWEATHER_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS
+        )
+        response.raise_for_status()
+        data = response.json()
+        temperature = data["main"]["temp"]
+        description = data["weather"][0]["description"]
+        resolved_city = data.get("name") or normalized_city
+        return f"Wetter für {resolved_city}: {temperature:.1f} °C, {description}."
+    except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+        return (
+            f"Die Wetterdaten für {normalized_city} konnten derzeit nicht "
+            "abgerufen werden. Bitte versuchen Sie es später erneut."
+        )
+```
+
+Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie eine leere Eingabe. Danach lädt sie `OPENWEATHER_API_KEY`; ohne Schlüssel delegiert sie an `_demo_weather()`. Mit Schlüssel sendet sie Stadt, metrische Einheiten und deutsche Spracheinstellung an OpenWeatherMap. HTTP-Fehler und fehlende oder ungültige Antwortfelder werden gemeinsam abgefangen und in eine verständliche Rückfallmeldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
+
+### 2.12.5 Funktion create_booking_confirmation(date, time)
+
+Der Buchungsservice validiert die beiden Eingaben und erzeugt eine ausdrücklich fiktive Bestätigung.
+
+```python
+def create_booking_confirmation(date: str, time: str) -> str:
+    normalized_date = (date or "").strip()
+    normalized_time = (time or "").strip()
+    if not normalized_date or not normalized_time:
+        return (
+            "Bitte geben Sie Datum und Uhrzeit an, zum Beispiel: "
+            "20.07.2026 14:00."
+        )
+    if not DATE_PATTERN.fullmatch(normalized_date):
+        return "Bitte verwenden Sie für das Datum das Format DD.MM.YYYY."
+    if not TIME_PATTERN.fullmatch(normalized_time):
+        return "Bitte verwenden Sie für die Uhrzeit das Format HH:MM (00:00–23:59)."
+    return (
+        f"Ihr Termin wurde fiktiv für den {normalized_date} um "
+        f"{normalized_time} Uhr bestätigt."
+    )
+```
+
+`create_booking_confirmation()` erhält Datum und Uhrzeit als Strings und gibt immer einen deutschen Text zurück. Fehlende Werte, ein Datum außerhalb des Formats `DD.MM.YYYY` oder eine Uhrzeit außerhalb von `HH:MM` führen zu konkreten Hinweisen. Gültige Eingaben erzeugen lediglich eine fiktive Bestätigung; es wird keine reale Buchung gespeichert. Die kanalunabhängige Funktion in `booking_service.py` wird sowohl vom Telegram- als auch vom Webkanal aufgerufen.
 
 # Ausführung
 
