@@ -636,16 +636,16 @@ Telegram-spezifischer Code bleibt in `telegram_bot.py`. Web-spezifischer Code li
 
 Die Services können unabhängig von den Kanälen getestet und gewartet werden. Beide Oberflächen verhalten sich konsistent, weil sie dieselben Funktionen verwenden. Weitere Adapter für WhatsApp Business, Microsoft Teams oder Slack könnten später ergänzt werden, ohne die zentrale Wetter- oder Buchungslogik neu zu implementieren.
 
-## 2.12 JSON-Daten und Konfigurationsdateien
+## 2.12 Konfiguration durch JSON-Dateien
 
-JSON wird in diesem Projekt auf zwei Arten eingesetzt:
+In dieser Lösung wird JSON auf zwei Ebenen verwendet: Einerseits als Austauschformat zwischen Browser und Flask-Backend, andererseits als lokale Konfigurations- und Datengrundlage für den Demo-Modus. Dadurch wird deutlich zwischen Kommunikation, Konfiguration und Programmlogik unterschieden.
 
-1. als Format für JSON-Anfragen und JSON-Antworten zwischen `static/app.js` und den Flask-Endpunkten in `web_app.py`;
-2. als lokales Daten- und Konfigurationsformat für die Dateien im Ordner `data/`.
+1. `static/app.js` und die Flask-Endpunkte in `web_app.py` verwenden JSON für Anfragen und Antworten.
+2. Die Dateien im Ordner `data/` verwenden JSON als lokale Daten- und Konfigurationsgrundlage.
 
 Die lokalen JSON-Dateien trennen kleine, veränderbare Daten- und Konfigurationswerte von der Python-Logik. Dadurch wird der Prototyp leichter verständlich, wartbar und erweiterbar. Zugleich bleibt der Demo-Modus reproduzierbar, weil die Anwendung ohne reale API-Keys mit festgelegten Daten geprüft werden kann.
 
-**Tabelle 4: JSON-Dateien im Projekt**
+**Tabelle 4: JSON-Dateien und Zweck im Projekt**
 
 | Datei | Zweck |
 |---|---|
@@ -654,7 +654,36 @@ Die lokalen JSON-Dateien trennen kleine, veränderbare Daten- und Konfigurations
 
 ### 2.12.1 `data/demo_weather_data.json`
 
-Die Datei enthält deterministische Demo-Wetterdaten für Berlin, Hamburg, München und Köln sowie einen `default`-Eintrag. `weather_service.py` liest diese Daten, wenn kein `OPENWEATHER_API_KEY` verfügbar ist. Dadurch müssen die Demo-Werte nicht vollständig in Python hartcodiert werden und lassen sich anpassen, ohne die zentrale Service-Logik zu verändern. Dieselbe Stadt liefert bei wiederholten Tests dieselben Daten, was die Reproduzierbarkeit verbessert.
+Die Datei enthält deterministische Demo-Wetterdaten für Berlin, Hamburg, München und Köln sowie einen `default`-Eintrag. `weather_service.py` liest diese Daten, wenn kein `OPENWEATHER_API_KEY` verfügbar ist. Dadurch bleibt der Prototyp ohne externe Zugangsdaten testbar. Die Demo-Werte sind von der Python-Logik getrennt und können angepasst werden, ohne `weather_service.py` zu verändern.
+
+Der folgende Auszug entspricht dem aktuellen Inhalt der Datei:
+
+```json
+{
+  "Berlin": {
+    "temperature": 21,
+    "description": "leicht bewölkt"
+  },
+  "Hamburg": {
+    "temperature": 18,
+    "description": "windig"
+  },
+  "München": {
+    "temperature": 23,
+    "description": "sonnig"
+  },
+  "Köln": {
+    "temperature": 20,
+    "description": "wechselhaft"
+  },
+  "default": {
+    "temperature": 21,
+    "description": "leicht bewölkt"
+  }
+}
+```
+
+Die Stadtnamen bilden die Schlüssel des JSON-Objekts. Jeder Stadteintrag enthält mit `temperature` und `description` die Werte für Temperatur und Beschreibung. Ist eine Stadt nicht explizit vorhanden, kann der Eintrag `default` als Rückfallwert verwendet werden. `weather_service.py` liest diese Struktur und erzeugt daraus einen deutschen Demo-Wettertext. Da dieselbe Stadt stets dieselben Werte liefert, sind Tests reproduzierbar.
 
 **Workflow der Demo-Wetterdaten:**
 
@@ -670,7 +699,22 @@ Demo-Wetterantwort
 
 ### 2.12.2 `data/appointment_config.json`
 
-Die Datei stellt einfache Konfigurationswerte für fiktive Terminbestätigungen bereit. `booking_service.py` verwendet unter anderem Bestätigungspräfix und -suffix, Hinweise für Datums- und Zeitformat sowie Beispielwerte. Damit bleiben konfigurierbare Texte von der Validierungslogik getrennt. Es wird kein realer Termin gespeichert und es werden keine personenbezogenen Daten persistiert; die Buchung bleibt ausdrücklich fiktiv und erzeugt nur einen deutschen Antworttext.
+Die Datei stellt einfache Konfigurationswerte für fiktive Terminbestätigungen bereit und wird von `booking_service.py` gelesen. Damit bleiben veränderbare Textwerte von der Validierungslogik getrennt. Es wird kein realer Termin gespeichert und es werden keine personenbezogenen Daten persistiert; die Buchung bleibt ausdrücklich fiktiv.
+
+Der folgende Auszug entspricht dem aktuellen Inhalt der Datei:
+
+```json
+{
+  "confirmation_prefix": "Ihr Termin wurde fiktiv",
+  "confirmation_suffix": "bestätigt.",
+  "date_format_hint": "DD.MM.YYYY",
+  "time_format_hint": "HH:MM",
+  "example_date": "20.07.2026",
+  "example_time": "14:00"
+}
+```
+
+Die Datei enthält wiederverwendbare Textfragmente, Formatangaben und Beispielwerte. `booking_service.py` verwendet diese Werte für konsistente deutsche Meldungen. Die regulären Ausdrücke zur Prüfung von Datum und Uhrzeit verbleiben dagegen in Python. Diese Aufteilung trennt konfigurierbare Texte von fachlicher Validierung und verbessert die Wartbarkeit.
 
 **Workflow der Terminkonfiguration:**
 
@@ -684,9 +728,11 @@ data/appointment_config.json
 Fiktive Terminbestätigung
 ```
 
-### 2.12.3 Begründung für JSON-Konfiguration
+### 2.12.3 Begründung für die Konfiguration durch JSON-Dateien
 
-JSON ist leichtgewichtig, gut lesbar, sprachunabhängig und als Format für strukturierten Datenaustausch weit verbreitet. Für kleine Konfigurationsdateien eignet es sich besonders, weil statische Daten- und Textwerte nicht mit dem Python-Kontrollfluss vermischt werden müssen. Die Lösung demonstriert damit eine klare Trennung zwischen Daten, Konfiguration und Code. In einem größeren Produktivsystem könnten die Dateien später durch eine Datenbank, ein Content-Management-System, eine API, ein CRM oder eine Wissensbasis ersetzt werden.
+JSON-Dateien machen kleine Daten- und Konfigurationswerte sichtbar, gut lesbar und einfach änderbar. Das sprachunabhängige Format verhindert, dass statische Werte mit dem Python-Kontrollfluss vermischt werden, und unterstützt eine klare Trennung von Code, Daten und Konfiguration. Dadurch wird der Prototyp wartbarer und leichter erweiterbar. Die deterministischen Demo-Daten verbessern zusätzlich die Reproduzierbarkeit von Tests.
+
+Für diese Teilprüfung ist JSON ausreichend, weil die Anwendung ein kleiner Prototyp ist und keine realen Benutzerdaten speichert. In einem größeren Produktivsystem könnten die Dateien später durch eine Datenbank, ein CRM, ein Content-Management-System, eine API oder eine Wissensbasis ersetzt werden.
 
 ## 2.13 Erklärung des Codes für die Webanwendung und die gemeinsamen Services
 
@@ -953,6 +999,8 @@ hinweis_zur_abgabe.txt
 Das Projekt demonstriert eine übersichtliche Multi-Channel-Chatbot-Architektur. Die Telegram Bot API bildet den ersten Kanal, während Flask und AJAX eine asynchron bedienbare Weboberfläche als zweiten Kanal bereitstellen. Beide Kanäle verwenden dieselbe Geschäftslogik für Wetter und Termine. Diese Trennung verbessert Wartbarkeit, Konsistenz und Testbarkeit.
 
 Der JSON-basierte Demo-Modus stellt die Reproduzierbarkeit ohne realen OpenWeatherMap API-Key sicher. Die Lösung kann durch zusätzliche Kanaladapter für WhatsApp Business, Microsoft Teams oder Slack erweitert werden. Neue Anwendungsfälle ließen sich durch weitere Services oder Routing-Logik ergänzen, ohne die bestehenden Kanäle grundlegend umzubauen. Der aktuelle Prototyp konzentriert sich bewusst auf ein klares, nachvollziehbares Minimum Viable Product.
+
+Die JSON-Dateien verdeutlichen, warum konfigurierbare Software leichter wartbar ist: Demo-Wetterwerte und Texte für Terminbestätigungen lassen sich ändern, ohne die zentrale Python-Logik anzupassen. Diese Trennung unterstützt Wartung, Tests und spätere Erweiterungen. In größeren AI- oder Chatbot-Systemen gewinnt Konfigurationsmanagement zusätzlich an Bedeutung, weil sich beispielsweise Prompts, Routing-Regeln, API-Einstellungen, Rückfalltexte, Testdaten oder Wissensreferenzen im Laufe der Zeit ändern. JSON zeigt in diesem Prototyp auf einfache Weise, wie Anwendungsverhalten konfigurierbar bleibt, statt vollständig hartcodiert zu werden—ein wichtiges Prinzip für wartbare AI-Anwendungen und Multi-Channel-Systeme.
 
 Als nächster Qualitätsschritt könnten automatisierte Tests über eigene Skripte oder Testfunktionen ergänzt werden. Besonders `get_weather()` und `create_booking_confirmation()` eignen sich dafür, weil sie kanalunabhängig sind. Flask-Endpunkte können mit einem Test-Client oder externen Testskripten geprüft werden; Telegram-Befehle lassen sich über isolierte Handler und Mock-Objekte testen.
 
