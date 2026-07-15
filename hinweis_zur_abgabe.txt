@@ -18,6 +18,8 @@ Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellc
 - Bilder/DescriptionPic.png
 - Bilder/ProfilePic.png
 - Bilder/Screenshot 01_BotConfiguration.png
+- Bilder/Screenshot 02_test web application.png
+- Bilder/Screenshot 03_test telegram ohne wheathermap key.png
 - requirements.txt
 - .env.example
 - beispiel_dialog.txt
@@ -28,7 +30,9 @@ README.md enthält die Hauptlösung mit Aufgabenstellung, Architektur, Umsetzung
 Repository:
 https://github.com/angie86-cmd/ai-development-teilpruefung-2
 
-Der Ordner Bilder/ mit den drei PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild und das Description Picture des Telegram-Bots.
+Der Ordner Bilder/ mit den fünf PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild, das Description Picture und die manuellen Tests des Web- und Telegram-Kanals.
+
+Die beiden Test-Screenshots dokumentieren manuelle Prüfungen ohne aktiven OpenWeatherMap API-Key. Die Webanwendung und der Telegram-Bot wurden dabei erfolgreich im Demo-Modus getestet. Die Screenshots enthalten keine realen Tokens, API-Keys oder Inhalte aus einer lokalen .env-Datei. Die .env-Datei ist nicht Bestandteil der Abgabe; im ZIP-Archiv und im Repository werden keine realen Zugangsdaten gespeichert.
 
 Die Dateien data/demo_weather_data.json und data/appointment_config.json gehören zum Prototyp. Sie enthalten ausschließlich deterministische Demo-Wetterdaten beziehungsweise einfache Text- und Formatkonfigurationen für fiktive Terminbestätigungen. In den JSON-Dateien sind keine realen API-Schlüssel, Tokens oder sonstigen Secrets gespeichert.
 

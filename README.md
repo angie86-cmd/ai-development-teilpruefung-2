@@ -46,7 +46,9 @@ ai-development-teilpruefung-2/
 ├── Bilder/
 │   ├── DescriptionPic.png
 │   ├── ProfilePic.png
-│   └── Screenshot 01_BotConfiguration.png
+│   ├── Screenshot 01_BotConfiguration.png
+│   ├── Screenshot 02_test web application.png
+│   └── Screenshot 03_test telegram ohne wheathermap key.png
 ├── requirements.txt
 ├── .env.example
 ├── beispiel_dialog.txt
@@ -74,6 +76,8 @@ ai-development-teilpruefung-2/
 | `Bilder/DescriptionPic.png` | Bild für den Telegram-Bereich „What can this bot do?“ |
 | `Bilder/ProfilePic.png` | Profilbild des konfigurierten Telegram-Bots |
 | `Bilder/Screenshot 01_BotConfiguration.png` | Screenshot der BotFather-Konfiguration |
+| `Bilder/Screenshot 02_test web application.png` | Nachweis des manuellen Webtests im Demo-Modus |
+| `Bilder/Screenshot 03_test telegram ohne wheathermap key.png` | Nachweis des manuellen Telegram-Tests im Demo-Modus |
 | `requirements.txt` | Direkte Python-Abhängigkeiten des Projekts |
 | `.env.example` | Vorlage der benötigten und optionalen Umgebungsvariablen ohne Secrets |
 | `beispiel_dialog.txt` | Beispielabläufe für Telegram und Web |
@@ -921,7 +925,35 @@ Ohne `TELEGRAM_BOT_TOKEN` beendet sich das Programm kontrolliert und gibt einen 
 
 ## Test ohne API-Keys
 
-Für den Demo-Modus der Webanwendung werden keine Schlüssel benötigt. Ohne OpenWeatherMap-Schlüssel liefert der Wetterservice reproduzierbare Demo-Daten. Der Telegram-Kanal benötigt zwar ein eigenes Telegram-Token für die Verbindung zur Telegram Bot API, kann aber ebenfalls ohne OpenWeatherMap-Schlüssel Wetter-Demoantworten liefern.
+Die Anwendung wurde bewusst ohne gültigen OpenWeatherMap API-Key manuell getestet. Ziel dieses Testszenarios war es, den Rückfall- und Demo-Modus unabhängig von externen Wetterdiensten zu prüfen. In diesem Modus liest `weather_service.py` die deterministischen Werte aus `data/demo_weather_data.json`; eine Anfrage an die externe Wetter-API ist nicht erforderlich. Da Telegram und die Flask-Webanwendung denselben Wetterservice aufrufen, gilt dieses Verhalten für beide Kanäle. Damit bleibt das Projekt für prüfende Personen ohne externe Zugangsdaten reproduzierbar.
+
+Folgende manuelle Tests wurden durchgeführt:
+
+- Webanwendung unter `http://127.0.0.1:5000` geladen
+- Wetterformular mit `berlin` getestet
+- Terminformular mit `30.07.2026` und `13:00` getestet
+- Telegram mit `/start` getestet
+- Telegram mit `/hilfe` getestet
+- Telegram mit `/wetter Berlin` getestet
+- Telegram mit `/wetter Paris` getestet
+- Telegram mit `/termin 20.07.2026 14:00` getestet
+- Telegram mit `/termin 21.07.2026 15:00` getestet
+
+Die Webanwendung zeigte deterministische Demo-Wetterdaten und eine fiktive Terminbestätigung an. Der Telegram-Bot lieferte ebenfalls Demo-Wetterdaten sowie fiktive Terminbestätigungen. Auch die nicht explizit hinterlegte Stadt Paris wurde über den definierten Standardwert beantwortet. Weder Anwendung noch Bot stürzten ab; stattdessen erschienen verständliche deutsche Meldungen. Damit ist nachgewiesen, dass das System auch bei nicht konfigurierter oder nicht verfügbarer externer Wetter-API nutzbar und testbar bleibt.
+
+## Manuelle Testergebnisse ohne OpenWeatherMap API-Key
+
+**Abbildung 6: Test der Flask-Webanwendung ohne OpenWeatherMap API-Key**
+
+![Test der Flask-Webanwendung](Bilder/Screenshot%2002_test%20web%20application.png)
+
+Diese Abbildung zeigt die getestete Flask-Webanwendung mit Wetteranfrage im Demo-Modus und fiktiver Terminbuchung. Die Weboberfläche wurde über `http://127.0.0.1:5000` aufgerufen. Die Antwort wird ohne Neuladen der Seite angezeigt.
+
+**Abbildung 7: Test des Telegram-Bots ohne OpenWeatherMap API-Key**
+
+![Test des Telegram-Bots](Bilder/Screenshot%2003_test%20telegram%20ohne%20wheathermap%20key.png)
+
+Diese Abbildung zeigt den erfolgreichen Test des Telegram-Bots im Polling-Modus. Die Befehle `/start`, `/hilfe`, `/wetter` und `/termin` wurden manuell geprüft. Da kein aktiver OpenWeatherMap API-Key verwendet wurde, antwortet der Bot mit Demo-Wetterdaten.
 
 # Beispieldialog
 
@@ -986,13 +1018,15 @@ data/appointment_config.json
 Bilder/DescriptionPic.png
 Bilder/ProfilePic.png
 Bilder/Screenshot 01_BotConfiguration.png
+Bilder/Screenshot 02_test web application.png
+Bilder/Screenshot 03_test telegram ohne wheathermap key.png
 requirements.txt
 .env.example
 beispiel_dialog.txt
 hinweis_zur_abgabe.txt
 ```
 
-`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den drei PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild und Description Picture des Telegram-Bots dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
+`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den fünf PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild, Description Picture und die manuellen Demo-Tests beider Kanäle dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
 
 # Reflexion und Fazit
 
