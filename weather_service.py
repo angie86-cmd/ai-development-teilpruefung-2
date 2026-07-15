@@ -2,19 +2,39 @@
 # Telegram und Web verwenden dieselbe Funktion, damit die Antworten konsistent sind.
 # API-Schlüssel werden ausschließlich aus der Umgebung gelesen und nie hartcodiert.
 
+import json
 import os
+from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
 
 OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 REQUEST_TIMEOUT_SECONDS = 10
+DEMO_DATA_PATH = Path(__file__).resolve().parent / "data" / "demo_weather_data.json"
+SAFE_DEMO_WEATHER = {"temperature": 21, "description": "leicht bewölkt"}
 
 
-# Erzeugt feste Demo-Daten und macht das Projekt ohne reale Zugangsdaten reproduzierbar.
+# Liest reproduzierbare Demo-Daten aus JSON und nutzt bei Dateifehlern sichere Werte.
 def _demo_weather(city: str) -> str:
+    weather = SAFE_DEMO_WEATHER
+    try:
+        with DEMO_DATA_PATH.open(encoding="utf-8") as file:
+            demo_data = json.load(file)
+
+        city_key = next(
+            (name for name in demo_data if name.casefold() == city.casefold()),
+            "default",
+        )
+        weather = demo_data.get(city_key, demo_data.get("default", weather))
+        temperature = weather["temperature"]
+        description = weather["description"]
+    except (OSError, json.JSONDecodeError, AttributeError, KeyError, TypeError):
+        temperature = SAFE_DEMO_WEATHER["temperature"]
+        description = SAFE_DEMO_WEATHER["description"]
+
     return (
-        f"Demo-Wetter für {city}: 21 °C, leicht bewölkt. "
+        f"Demo-Wetter für {city}: {temperature} °C, {description}. "
         "Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden."
     )
 

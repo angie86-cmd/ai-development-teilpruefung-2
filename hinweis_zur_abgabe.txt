@@ -13,6 +13,8 @@ Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellc
 - templates/index.html
 - static/app.js
 - static/style.css
+- data/demo_weather_data.json
+- data/appointment_config.json
 - Bilder/DescriptionPic.png
 - Bilder/ProfilePic.png
 - Bilder/Screenshot 01_BotConfiguration.png
@@ -27,6 +29,8 @@ Repository:
 https://github.com/angie86-cmd/ai-development-teilpruefung-2
 
 Der Ordner Bilder/ mit den drei PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild und das Description Picture des Telegram-Bots.
+
+Die Dateien data/demo_weather_data.json und data/appointment_config.json gehören zum Prototyp. Sie enthalten ausschließlich deterministische Demo-Wetterdaten beziehungsweise einfache Text- und Formatkonfigurationen für fiktive Terminbestätigungen. In den JSON-Dateien sind keine realen API-Schlüssel, Tokens oder sonstigen Secrets gespeichert.
 
 Für den Bot ist die Telegram Standard Privacy Policy hinterlegt:
 https://telegram.org/privacy-tpa

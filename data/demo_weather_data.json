@@ -1,0 +1,22 @@
+{
+  "Berlin": {
+    "temperature": 21,
+    "description": "leicht bewölkt"
+  },
+  "Hamburg": {
+    "temperature": 18,
+    "description": "windig"
+  },
+  "München": {
+    "temperature": 23,
+    "description": "sonnig"
+  },
+  "Köln": {
+    "temperature": 20,
+    "description": "wechselhaft"
+  },
+  "default": {
+    "temperature": 21,
+    "description": "leicht bewölkt"
+  }
+}

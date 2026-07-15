@@ -1,0 +1,8 @@
+{
+  "confirmation_prefix": "Ihr Termin wurde fiktiv",
+  "confirmation_suffix": "bestätigt.",
+  "date_format_hint": "DD.MM.YYYY",
+  "time_format_hint": "HH:MM",
+  "example_date": "20.07.2026",
+  "example_time": "14:00"
+}

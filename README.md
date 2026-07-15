@@ -40,6 +40,9 @@ ai-development-teilpruefung-2/
 ├── static/
 │   ├── app.js
 │   └── style.css
+├── data/
+│   ├── demo_weather_data.json
+│   └── appointment_config.json
 ├── Bilder/
 │   ├── DescriptionPic.png
 │   ├── ProfilePic.png
@@ -65,6 +68,8 @@ ai-development-teilpruefung-2/
 | `templates/index.html` | Deutsche Benutzeroberfläche mit Wetter- und Terminformular |
 | `static/app.js` | Asynchrone Formularverarbeitung mit der Fetch API |
 | `static/style.css` | Einfaches responsives Erscheinungsbild ohne externes Framework |
+| `data/demo_weather_data.json` | Deterministische Demo-Wetterdaten für Tests ohne OpenWeatherMap API-Key |
+| `data/appointment_config.json` | Text- und Formatkonfiguration für fiktive Terminbestätigungen |
 | `Bilder/` | Bildnachweise zur Konfiguration und visuellen Darstellung des Telegram-Bots |
 | `Bilder/DescriptionPic.png` | Bild für den Telegram-Bereich „What can this bot do?“ |
 | `Bilder/ProfilePic.png` | Profilbild des konfigurierten Telegram-Bots |
@@ -76,7 +81,7 @@ ai-development-teilpruefung-2/
 | `.gitignore` | Ausschluss lokaler Umgebung, Caches, Secrets und ZIP-Prüfverzeichnis |
 | `submission/Angie_Angarita_Soto_Teilprüfung 2.zip` | Finale Datei zur Einreichung |
 
-Die gewählte Struktur trennt Dokumentation, Telegram-Kanallogik, Web-Kanallogik, gemeinsame Geschäftslogik, Frontend-Dateien, Konfigurationsbeispiele, Bildnachweise und Abgabedateien klar voneinander. `telegram_bot.py` enthält ausschließlich die Telegram-spezifische Kanallogik. Der Webkanal verteilt sich auf `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die von beiden Kanälen verwendeten fachlichen Funktionen liegen zentral in `weather_service.py` und `booking_service.py`. Dadurch wird doppelter Code vermieden und das Projekt lässt sich leichter testen, warten und erweitern.
+Die gewählte Struktur trennt Dokumentation, Telegram-Kanallogik, Web-Kanallogik, gemeinsame Geschäftslogik, Frontend-Dateien, Konfigurationsbeispiele, Bildnachweise und Abgabedateien klar voneinander. `telegram_bot.py` enthält ausschließlich die Telegram-spezifische Kanallogik. Der Webkanal verteilt sich auf `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die von beiden Kanälen verwendeten fachlichen Funktionen liegen zentral in `weather_service.py` und `booking_service.py`. Die beiden JSON-Dateien trennen kleine Demo- und Konfigurationswerte von der Python-Logik. Dadurch wird doppelter Code vermieden und das Projekt lässt sich leichter verstehen, testen, warten und erweitern.
 
 Weitere Kanäle wie WhatsApp Business, Microsoft Teams oder Slack könnten später als zusätzliche Adapter ergänzt werden, ohne die zentrale Geschäftslogik neu zu schreiben. `Bilder/` dokumentiert die BotFather-Konfiguration und die visuelle Einrichtung des Bots; `submission/` enthält das finale ZIP-Archiv. Git und GitHub dienen der nachvollziehbaren Versionierung und Dokumentation des Entwicklungsprozesses.
 
@@ -90,6 +95,7 @@ Die Regeln in `.gitignore` trennen lokale oder automatisch erzeugte Dateien von 
 - `submission/check_zip/` wird ausgeschlossen, weil dieses temporäre Verzeichnis nur zur Prüfung des ZIP-Archivs vor der Abgabe dient.
 - `.pytest_cache/`, `.DS_Store` und `Thumbs.db` werden ausgeschlossen, da sie lokal durch Testwerkzeuge oder Betriebssysteme entstehen.
 - `Bilder/` wird bewusst nicht ausgeschlossen: Die Bilder dokumentieren die Telegram-BotFather-Konfiguration und gehören zur Projektdokumentation auf GitHub.
+- `data/` und die JSON-Dateien werden bewusst nicht ausgeschlossen, da sie benötigte Demo-Daten und sichere Konfigurationswerte des Prototyps enthalten.
 - Das finale ZIP-Archiv in `submission/` wird nicht allgemein ausgeschlossen, damit es entsprechend dem Arbeitsablauf der vorherigen Teilprüfung versioniert werden kann.
 
 Git protokolliert die Entwicklung nachvollziehbar; GitHub dient als Remote-Repository. Lokale Laufzeitdateien wie `.venv`, `.env`, Python-Caches und `submission/check_zip/` werden ignoriert. Die ZIP-Abgabe enthält nur die freigegebenen Dateitypen und keine Versionsverwaltungsdaten.
@@ -289,9 +295,13 @@ Als Eingabe dienen die ersten beiden Befehlsargumente; fehlende Werte werden als
 
 ## 2.1 Ziel der Webanwendung
 
-Die Flask-Webanwendung bietet dieselben zwei Anwendungsfälle wie Telegram über eine leicht bedienbare Browseroberfläche. Dadurch lässt sich der Chatbot auch ohne Telegram-Konto demonstrieren.
+Die Flask-Webanwendung bietet dieselben zwei Anwendungsfälle wie Telegram über eine leicht bedienbare Browseroberfläche. Dadurch lässt sich der Chatbot auch ohne Telegram-Konto demonstrieren. AJAX ermöglicht dabei die asynchrone Kommunikation zwischen Browser und Flask-Backend: Wetter- und Terminanfragen können abgesendet und beantwortet werden, ohne die gesamte Seite neu zu laden. Damit wird die entsprechende Anforderung der Teilprüfung unmittelbar erfüllt.
+
+Für einen schlanken Prototyp ist AJAX mit der integrierten Fetch API besonders geeignet, weil kein komplexes Frontend-Framework erforderlich ist. Die Oberfläche bleibt bewusst einfach, demonstriert aber das Grundprinzip moderner interaktiver Webanwendungen. Gleichzeitig nutzt sie dieselben Backend-Services wie Telegram, sodass beide Kanäle konsistente fachliche Antworten liefern.
 
 ## 2.2 Architektur der Webanwendung
+
+**Abbildung 4: Routing und Datenfluss der Flask-Webanwendung**
 
 ```text
 Browser
@@ -309,9 +319,25 @@ JSON Response
 Result shown on page
 ```
 
+Der Routing- und Datenfluss läuft in acht Schritten ab:
+
+1. Die Benutzerin oder der Benutzer gibt Daten in ein Formular im Browser ein.
+2. `static/app.js` fängt das Absenden des Formulars ab.
+3. `fetch` sendet eine JSON-Anfrage an den passenden Flask-Endpunkt.
+4. `web_app.py` empfängt die JSON-Anfrage.
+5. `web_app.py` leitet die Eingaben an `weather_service.py` oder `booking_service.py` weiter.
+6. Der aufgerufene Service gibt einen deutschen Antworttext zurück.
+7. Flask verpackt diesen Text als JSON-Antwort.
+8. JavaScript schreibt die Antwort in den zugehörigen Ergebnisbereich der Seite.
+
 ## 2.3 Flask-Routen
 
-`web_app.py` implementiert eine HTML-Route und zwei JSON-Endpunkte.
+Flask-Routen sind URL-Endpunkte, die eine Kombination aus URL und HTTP-Methode mit einer Python-Funktion verbinden. Die Webanwendung benötigt eine Route für die HTML-Seite, einen API-Endpunkt für Wetteranfragen und einen API-Endpunkt für Terminanfragen. `web_app.py` implementiert deshalb genau diese drei Zugänge.
+
+Die beiden API-Endpunkte tauschen JSON mit dem Browser aus. JSON ist ein leichtgewichtiges, strukturiertes Datenformat und kann Felder wie `city`, `date`, `time` und `message` eindeutig darstellen. In diesem Projekt wird JSON auf zwei Ebenen eingesetzt:
+
+1. als Anfrage- und Antwortformat zwischen `static/app.js` und Flask;
+2. als lokales Daten- und Konfigurationsformat in `data/demo_weather_data.json` und `data/appointment_config.json`.
 
 **Tabelle 3: Flask-Routen**
 
@@ -457,11 +483,31 @@ Auch hier verhindert `event.preventDefault()` den Seitenreload. Der Handler send
 
 ## 2.5 Wetterformular
 
-Das Wetterformular in `templates/index.html` nimmt eine Stadt entgegen. Nach dem Absenden wird `{ "city": "Berlin" }` an `/api/weather` übertragen. Der Endpunkt ruft `get_weather()` auf und sendet dessen Ergebnis zurück.
+Der Datenfluss der Wetteranfrage ist auf klar abgegrenzte Komponenten verteilt:
+
+1. In `templates/index.html` gibt die Benutzerin oder der Benutzer eine Stadt in das Eingabefeld mit der ID `city` ein.
+2. `static/app.js` liest den Wert über diese ID aus und erzeugt beispielsweise `{ "city": "Berlin" }`.
+3. JavaScript sendet das JSON-Objekt per POST an `/api/weather`.
+4. `weather_api()` in `web_app.py` empfängt die Anfrage und liest das Feld `city`.
+5. Der Flask-Endpunkt ruft `get_weather(city)` aus `weather_service.py` auf.
+6. Der Wetterservice verwendet mit API-Key OpenWeatherMap; ohne API-Key liest er die Demo-Daten aus `data/demo_weather_data.json`.
+7. `web_app.py` verpackt den deutschen Antworttext als JSON.
+8. `static/app.js` schreibt `message` in den Ergebnisbereich `weather-result`.
 
 ## 2.6 Terminformular
 
-Das Terminformular erfasst Datum und Uhrzeit. Die Werte werden als JSON an `/api/appointment` gesendet und durch `create_booking_confirmation()` geprüft. Der Hinweis im Formular macht die erwarteten Formate transparent.
+Auch die fiktive Terminbuchung folgt einem nachvollziehbaren Datenfluss:
+
+1. In `templates/index.html` werden Datum und Uhrzeit in die Felder mit den IDs `date` und `time` eingegeben.
+2. `static/app.js` liest beide Werte und bildet ein JSON-Objekt mit `date` und `time`.
+3. JavaScript sendet dieses Objekt per POST an `/api/appointment`.
+4. `appointment_api()` in `web_app.py` empfängt die Anfrage.
+5. Der Endpunkt ruft `create_booking_confirmation(date, time)` aus `booking_service.py` auf.
+6. Der Buchungsservice validiert beide Werte mit regulären Ausdrücken und liest Text- und Formatwerte aus `data/appointment_config.json`.
+7. `web_app.py` gibt die fiktive Bestätigung oder Fehlermeldung als JSON zurück.
+8. `static/app.js` schreibt `message` in den Ergebnisbereich `appointment-result`.
+
+Es wird dabei kein realer Termin erzeugt oder gespeichert.
 
 ## 2.7 Antwort ohne Neuladen der Seite
 
@@ -477,7 +523,9 @@ Der Webkanal importiert dieselben Funktionen `get_weather()` und `create_booking
 
 ### 2.9.1 Funktion get_weather(city)
 
-`get_weather(city: str) -> str` ist die zentrale Funktion für Wetteranfragen. Sie erhält einen Stadtnamen, bereinigt die Eingabe und gibt stets einen deutschen Antworttext zurück. Da sie weder Telegram- noch Flask-Objekte verwendet, ist sie kanalunabhängig und kann von beiden Kanälen aufgerufen werden. Anschließend entscheidet sie anhand der Umgebungsvariable `OPENWEATHER_API_KEY` zwischen Live- und Demo-Modus.
+`get_weather(city: str) -> str` ist die zentrale Funktion für Wetteranfragen. Sie erhält einen Stadtnamen, bereinigt die Eingabe und gibt stets einen deutschen Antworttext zurück. Da sie weder Telegram- noch Flask-Objekte verwendet, ist sie kanalunabhängig und kann von beiden Kanälen aufgerufen werden.
+
+Ein `OPENWEATHER_API_KEY` wird nur für reale, produktionsähnliche Wetterdaten von OpenWeatherMap benötigt und ausschließlich aus der gleichnamigen Umgebungsvariable gelesen. Der Schlüssel wird nicht in Quellcode, README, Screenshots, GitHub oder ZIP gespeichert. Fehlt er, verwendet die Funktion stattdessen `data/demo_weather_data.json`. Dadurch bleibt die Anwendung ohne externe Zugangsdaten vollständig testbar.
 
 ### 2.9.2 OpenWeatherMap-Anbindung
 
@@ -495,11 +543,47 @@ Die Anfrage übermittelt den eingegebenen Stadtnamen, metrische Einheiten und di
 
 ### 2.9.3 Demo-Modus ohne API-Key
 
-Fehlt `OPENWEATHER_API_KEY`, liefert die Funktion deterministische Demo-Daten, beispielsweise `Demo-Wetter für Berlin: 21 °C, leicht bewölkt.` Dieser Modus macht das Projekt für prüfende Personen ohne externe Zugangsdaten testbar und stellt die Reproduzierbarkeit der Abgabe sicher.
+Fehlt `OPENWEATHER_API_KEY`, liest die Funktion deterministische Demo-Daten aus `data/demo_weather_data.json`, beispielsweise `Demo-Wetter für Berlin: 21 °C, leicht bewölkt.` Für nicht hinterlegte Städte wird der Eintrag `default` verwendet. Dieser Modus macht das Projekt für prüfende Personen ohne externe Zugangsdaten testbar und stellt die Reproduzierbarkeit der Abgabe sicher. Ist die JSON-Datei nicht lesbar, greifen zusätzlich sichere Standardwerte im Python-Service.
 
 ### 2.9.4 Fehlerbehandlung
 
-Eine fehlende Stadt führt zu einem konkreten Eingabehinweis. HTTP- und API-Fehler, Zeitüberschreitungen, ungültiges JSON und fehlende Antwortfelder werden ebenfalls kontrolliert behandelt. Statt eines technischen Stacktraces erhalten Benutzerinnen und Benutzer eine freundliche deutsche Rückfallmeldung.
+Die zentrale Fehlerbehandlung ist direkt in `get_weather()` enthalten:
+
+```python
+def get_weather(city: str) -> str:
+    normalized_city = (city or "").strip()
+    if not normalized_city:
+        return "Bitte geben Sie eine Stadt an, zum Beispiel: Berlin."
+
+    load_dotenv()
+    api_key = os.getenv("OPENWEATHER_API_KEY", "").strip()
+    if not api_key:
+        return _demo_weather(normalized_city)
+
+    params = {
+        "q": normalized_city,
+        "appid": api_key,
+        "units": "metric",
+        "lang": "de",
+    }
+    try:
+        response = requests.get(
+            OPENWEATHER_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS
+        )
+        response.raise_for_status()
+        data = response.json()
+        temperature = data["main"]["temp"]
+        description = data["weather"][0]["description"]
+        resolved_city = data.get("name") or normalized_city
+        return f"Wetter für {resolved_city}: {temperature:.1f} °C, {description}."
+    except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+        return (
+            f"Die Wetterdaten für {normalized_city} konnten derzeit nicht "
+            "abgerufen werden. Bitte versuchen Sie es später erneut."
+        )
+```
+
+Eine leere Stadt führt sofort zu einem hilfreichen Eingabehinweis. Ein fehlender API-Key ist dagegen kein Fehler, sondern aktiviert bewusst den JSON-basierten Demo-Modus. Bei Live-Anfragen erkennt `response.raise_for_status()` fehlerhafte HTTP-Statuscodes. Netzwerkprobleme, eine unerwartete JSON-Struktur, fehlende Felder und ungültige Werte werden gemeinsam abgefangen. Benutzerinnen und Benutzer erhalten dadurch eine freundliche deutsche Rückfallmeldung statt eines technischen Stacktraces. Für den Prototyp ist dies wichtig, weil die Anwendung auch bei Ausfällen externer APIs nachvollziehbar geprüft werden kann.
 
 ## 2.10 Terminbuchung
 
@@ -578,13 +662,29 @@ Die interne Hilfsfunktion stellt eine deterministische Alternative zur externen 
 
 ```python
 def _demo_weather(city: str) -> str:
+    weather = SAFE_DEMO_WEATHER
+    try:
+        with DEMO_DATA_PATH.open(encoding="utf-8") as file:
+            demo_data = json.load(file)
+
+        city_key = next(
+            (name for name in demo_data if name.casefold() == city.casefold()),
+            "default",
+        )
+        weather = demo_data.get(city_key, demo_data.get("default", weather))
+        temperature = weather["temperature"]
+        description = weather["description"]
+    except (OSError, json.JSONDecodeError, AttributeError, KeyError, TypeError):
+        temperature = SAFE_DEMO_WEATHER["temperature"]
+        description = SAFE_DEMO_WEATHER["description"]
+
     return (
-        f"Demo-Wetter für {city}: 21 °C, leicht bewölkt. "
+        f"Demo-Wetter für {city}: {temperature} °C, {description}. "
         "Hinweis: Es wurde kein OpenWeatherMap API-Key gefunden."
     )
 ```
 
-`_demo_weather()` erhält einen bereinigten Stadtnamen und gibt einen festen deutschen Wettertext zurück. Damit bleibt die Bewertung ohne API-Key reproduzierbar und es werden keine realen Zugangsdaten benötigt. Da diese Rückfalllogik zu Wetteranfragen gehört und von beiden Kanälen nutzbar ist, befindet sie sich in `weather_service.py`.
+`_demo_weather()` erhält einen bereinigten Stadtnamen, liest `data/demo_weather_data.json` und sucht den Stadteintrag unabhängig von Groß- und Kleinschreibung. Für unbekannte Städte wird `default` verwendet. Kann die Datei nicht gelesen oder ausgewertet werden, liefern sichere Python-Standardwerte weiterhin eine deutsche Antwort. Damit bleibt die Bewertung ohne API-Key reproduzierbar. Da diese Rückfalllogik von beiden Kanälen nutzbar ist, befindet sie sich in `weather_service.py`.
 
 ### 2.12.4 Funktion get_weather(city)
 
@@ -632,47 +732,63 @@ Der Buchungsservice validiert die beiden Eingaben und erzeugt eine ausdrücklich
 
 ```python
 def create_booking_confirmation(date: str, time: str) -> str:
+    config = SAFE_CONFIG
+    try:
+        with CONFIG_PATH.open(encoding="utf-8") as file:
+            config = {**SAFE_CONFIG, **json.load(file)}
+    except (OSError, json.JSONDecodeError, TypeError):
+        # Die sichere Standardkonfiguration hält den Prototyp ohne JSON-Datei lauffähig.
+        config = SAFE_CONFIG
+
     normalized_date = (date or "").strip()
     normalized_time = (time or "").strip()
     if not normalized_date or not normalized_time:
         return (
             "Bitte geben Sie Datum und Uhrzeit an, zum Beispiel: "
-            "20.07.2026 14:00."
+            f"{config['example_date']} {config['example_time']}."
         )
     if not DATE_PATTERN.fullmatch(normalized_date):
-        return "Bitte verwenden Sie für das Datum das Format DD.MM.YYYY."
+        return (
+            "Bitte verwenden Sie für das Datum das Format "
+            f"{config['date_format_hint']}."
+        )
     if not TIME_PATTERN.fullmatch(normalized_time):
-        return "Bitte verwenden Sie für die Uhrzeit das Format HH:MM (00:00–23:59)."
+        return (
+            "Bitte verwenden Sie für die Uhrzeit das Format "
+            f"{config['time_format_hint']} (00:00–23:59)."
+        )
     return (
-        f"Ihr Termin wurde fiktiv für den {normalized_date} um "
-        f"{normalized_time} Uhr bestätigt."
+        f"{config['confirmation_prefix']} für den {normalized_date} um "
+        f"{normalized_time} Uhr {config['confirmation_suffix']}"
     )
 ```
 
-`create_booking_confirmation()` erhält Datum und Uhrzeit als Strings und gibt immer einen deutschen Text zurück. Fehlende Werte, ein Datum außerhalb des Formats `DD.MM.YYYY` oder eine Uhrzeit außerhalb von `HH:MM` führen zu konkreten Hinweisen. Gültige Eingaben erzeugen lediglich eine fiktive Bestätigung; es wird keine reale Buchung gespeichert. Die kanalunabhängige Funktion in `booking_service.py` wird sowohl vom Telegram- als auch vom Webkanal aufgerufen.
+`create_booking_confirmation()` lädt zunächst sichere Text- und Formatwerte aus `data/appointment_config.json`; bei einem Dateifehler greift `SAFE_CONFIG`. Die Funktion erhält Datum und Uhrzeit als Strings und gibt immer einen deutschen Text zurück. Fehlende Werte, ein Datum außerhalb des Formats `DD.MM.YYYY` oder eine Uhrzeit außerhalb von `HH:MM` führen zu konkreten Hinweisen. Gültige Eingaben erzeugen lediglich eine fiktive Bestätigung; es wird keine reale Buchung gespeichert. Die kanalunabhängige Funktion wird sowohl vom Telegram- als auch vom Webkanal aufgerufen.
 
 # Ausführung
 
 ## Installation
 
-Voraussetzung ist eine lokale Python-Installation. Alle Befehle werden im Projektverzeichnis ausgeführt. Es werden keine echten Zugangsdaten mitgeliefert.
-
-## Virtuelle Umgebung
+Vorausgesetzt werden Python 3.10 oder neuer, `pip` und die Möglichkeit, eine virtuelle Python-Umgebung anzulegen. Die benötigten Bibliotheken werden aus `requirements.txt` installiert. Unter Windows PowerShell erfolgt die vollständige Vorbereitung mit:
 
 ```powershell
+cd C:\dev\ai-development-teilpruefung-2
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-## Abhängigkeiten installieren
-
-```powershell
 pip install -r requirements.txt
 ```
 
+## Virtuelle Umgebung
+
+Die virtuelle Umgebung `.venv` isoliert die Projektabhängigkeiten von der globalen Python-Installation. Sie wird lokal erstellt, vor der Installation aktiviert und durch `.gitignore` von der Versionierung ausgeschlossen.
+
+## Abhängigkeiten installieren
+
+`requirements.txt` installiert Flask für den Webkanal, `requests` für OpenWeatherMap, `python-dotenv` für lokale Umgebungsvariablen und `python-telegram-bot` für den Telegram-Kanal.
+
 ## Umgebungsvariablen
 
-`.env.example` zeigt die erwarteten Variablen. Für lokale Live-Tests kann eine eigene, durch `.gitignore` ausgeschlossene `.env` angelegt werden. Sie darf nicht in Git oder die ZIP-Abgabe aufgenommen werden. `TELEGRAM_BOT_TOKEN` ist zum Start des Telegram-Bots erforderlich; `OPENWEATHER_API_KEY` ist für echte Wetterdaten optional. `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG` konfigurieren den lokalen Webserver.
+`.env.example` dokumentiert die erwarteten Variablen ohne echte Secrets. Für lokale Tests kann eine eigene, durch `.gitignore` ausgeschlossene `.env` angelegt werden. Der Web-Demo-Modus benötigt keinen API-Key, weil `data/demo_weather_data.json` verwendet wird. Für Telegram-Tests ist `TELEGRAM_BOT_TOKEN` lokal erforderlich; für reale OpenWeatherMap-Daten kann `OPENWEATHER_API_KEY` optional konfiguriert werden. `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG` steuern den lokalen Webserver. Die reale `.env` wird weder in GitHub noch in die ZIP-Abgabe aufgenommen.
 
 ## Webanwendung starten
 
@@ -752,6 +868,8 @@ booking_service.py
 templates/index.html
 static/app.js
 static/style.css
+data/demo_weather_data.json
+data/appointment_config.json
 Bilder/DescriptionPic.png
 Bilder/ProfilePic.png
 Bilder/Screenshot 01_BotConfiguration.png
@@ -761,10 +879,14 @@ beispiel_dialog.txt
 hinweis_zur_abgabe.txt
 ```
 
-`README.md` enthält die Hauptlösung. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den drei PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild und Description Picture des Telegram-Bots dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
+`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den drei PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild und Description Picture des Telegram-Bots dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
 
 # Reflexion und Fazit
 
 Das Projekt demonstriert eine übersichtliche Multi-Channel-Chatbot-Architektur. Die Telegram Bot API bildet den ersten Kanal, während Flask und AJAX eine asynchron bedienbare Weboberfläche als zweiten Kanal bereitstellen. Beide Kanäle verwenden dieselbe Geschäftslogik für Wetter und Termine. Diese Trennung verbessert Wartbarkeit, Konsistenz und Testbarkeit.
 
-Der deterministische Demo-Modus stellt die Reproduzierbarkeit ohne realen OpenWeatherMap API-Key sicher. Weitere Kanäle wie WhatsApp Business oder Microsoft Teams könnten durch zusätzliche Adapter ergänzt werden. Für den akademischen Prototyp wurde die Telegram Standard Privacy Policy verwendet; auf eine separate Datenschutzdatei wurde bewusst verzichtet, damit keine widersprüchlichen parallelen Richtlinien gepflegt werden. Für den Produktivbetrieb wären darüber hinaus robustere fachliche Datumsvalidierung, strukturiertes Logging, Monitoring, Authentifizierung, Rate Limiting sowie ein professionelles und sicheres Secret-Management erforderlich.
+Der JSON-basierte Demo-Modus stellt die Reproduzierbarkeit ohne realen OpenWeatherMap API-Key sicher. Die Lösung kann durch zusätzliche Kanaladapter für WhatsApp Business, Microsoft Teams oder Slack erweitert werden. Neue Anwendungsfälle ließen sich durch weitere Services oder Routing-Logik ergänzen, ohne die bestehenden Kanäle grundlegend umzubauen. Der aktuelle Prototyp konzentriert sich bewusst auf ein klares, nachvollziehbares Minimum Viable Product.
+
+Als nächster Qualitätsschritt könnten automatisierte Tests über eigene Skripte oder Testfunktionen ergänzt werden. Besonders `get_weather()` und `create_booking_confirmation()` eignen sich dafür, weil sie kanalunabhängig sind. Flask-Endpunkte können mit einem Test-Client oder externen Testskripten geprüft werden; Telegram-Befehle lassen sich über isolierte Handler und Mock-Objekte testen.
+
+Für einen Produktivbetrieb wären außerdem fortlaufendes Monitoring und Wartung erforderlich. Sinnvolle Messpunkte wären strukturierte Fehlerprotokolle, fehlgeschlagene API-Aufrufe, Antwortzeiten, Nutzungsmuster und ungültige Benutzereingaben. Diese Beobachtbarkeit würde helfen, Zuverlässigkeit und Reaktionsfähigkeit langfristig zu sichern. Zusätzlich wären robustere fachliche Datumsvalidierung, Authentifizierung, Rate Limiting und professionelles Secret-Management nötig. Für den akademischen Prototyp wird die Telegram Standard Privacy Policy verwendet; eine separate Datenschutzdatei wird bewusst nicht parallel gepflegt.

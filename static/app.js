@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const weatherResult = document.querySelector("#weather-result");
     const appointmentResult = document.querySelector("#appointment-result");
 
-    // Sendet Nutzereingaben asynchron als JSON an einen Flask-Endpunkt.
+    // Sendet JSON-Nutzdaten asynchron an Flask und liest die JSON-Antwort.
     async function postJson(url, payload) {
         const response = await fetch(url, {
             method: "POST",
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
     }
 
-    // Übermittelt die Stadt ohne Seitenreload an den Wetter-Endpunkt.
+    // Sendet z. B. { "city": "Berlin" } ohne Seitenreload an /api/weather.
     weatherForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         weatherResult.textContent = "Wetterdaten werden geladen …";
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Übermittelt Datum und Uhrzeit ohne Seitenreload an den Termin-Endpunkt.
+    // Sendet z. B. { "date": "20.07.2026", "time": "14:00" } an /api/appointment.
     appointmentForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         appointmentResult.textContent = "Termin wird geprüft …";
