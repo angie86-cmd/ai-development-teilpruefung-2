@@ -15,6 +15,8 @@ Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellc
 - static/style.css
 - data/demo_weather_data.json
 - data/appointment_config.json
+- tests/run_error_handling_tests.py
+- reports/error_handling_test_report.txt
 - Bilder/DescriptionPic.png
 - Bilder/ProfilePic.png
 - Bilder/Screenshot 01_BotConfiguration.png
@@ -25,6 +27,7 @@ Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellc
 - Bilder/Screenshot 06_test web mit wheathermap key2.png
 - Bilder/Screenshot 07_test web mit wheathermap key3.png
 - Bilder/Screenshot 08_test telegram mit wheathermap key.png
+- Bilder/Screenshot 09_automated_error_handling_tests.png
 - requirements.txt
 - .env.example
 - beispiel_dialog.txt
@@ -35,11 +38,13 @@ README.md enthält die Hauptlösung mit Aufgabenstellung, Architektur, Umsetzung
 Repository:
 https://github.com/angie86-cmd/ai-development-teilpruefung-2
 
-Der Ordner Bilder/ mit den zehn PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild, das Description Picture und die manuellen Tests des Web- und Telegram-Kanals.
+Der Ordner Bilder/ mit den elf PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild, das Description Picture sowie die manuellen und automatisierten Tests.
 
 Die Screenshots dokumentieren manuelle Tests ohne und mit aktivem OpenWeatherMap API-Key. Ohne API-Key wurden die Webanwendung und der Telegram-Bot erfolgreich im Demo-Modus getestet. Die Tests mit API-Key zeigen die erfolgreiche OpenWeatherMap-Anbindung; die Tests mit ungültiger Stadt dokumentieren die verbesserte Fehlerbehandlung.
 
 Die `.env`-Datei ist nicht Bestandteil der Abgabe. Es werden keine realen Tokens oder API-Keys im Repository oder ZIP-Archiv gespeichert. Screenshots dürfen keine Tokens, API-Keys oder Inhalte aus `.env` zeigen.
+
+Das Skript tests/run_error_handling_tests.py prüft zentrale Fehlerbehandlungsfälle im Wetter- und Terminservice automatisiert. Die simulierten API-Fehler werden mit `unittest.mock` erzeugt, sodass keine echten API-Limits ausgelöst werden. Der erzeugte Bericht reports/error_handling_test_report.txt enthält die Prüfergebnisse, jedoch keine Tokens, API-Keys oder sonstigen Zugangsdaten. Die automatisierten Tests ergänzen die manuellen Tests der Webanwendung und des Telegram-Bots. Bilder/Screenshot 09_automated_error_handling_tests.png dokumentiert den erfolgreichen Testlauf.
 
 Die Dateien data/demo_weather_data.json und data/appointment_config.json gehören zum Prototyp. Sie enthalten ausschließlich deterministische Demo-Wetterdaten beziehungsweise einfache Text- und Formatkonfigurationen für fiktive Terminbestätigungen. In den JSON-Dateien sind keine realen API-Schlüssel, Tokens oder sonstigen Secrets gespeichert.
 

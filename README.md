@@ -1061,6 +1061,109 @@ Diese Abbildung zeigt die Fehlerbehandlung der Webanwendung. Eine ungültige Sta
 
 Diese Abbildung zeigt den Telegram-Bot im Polling-Modus mit aktivem OpenWeatherMap API-Key. Wetteranfragen für gültige Städte, ungültige Stadtangaben und Terminbuchungen wurden manuell geprüft.
 
+## Automatisierte Error-Handling-Tests
+
+Ergänzend zu den manuellen Tests wurden automatisierte Error-Handling-Tests hinzugefügt. Sie prüfen zusätzliche Fehlerfälle, ohne Fehler im Browser oder in Telegram manuell erzwingen zu müssen. Insbesondere Authentifizierungsfehler und Rate Limits sollen nicht absichtlich gegen die reale OpenWeatherMap API ausgelöst werden. Das Skript `tests/run_error_handling_tests.py` simuliert externe API-Antworten deshalb mit `unittest.mock`. Dadurch wird die Entwicklungsumgebung weder unnötig belastet noch beschädigt, und das reale API-Limit wird nicht überschritten.
+
+Die Tests konzentrieren sich auf die kanalunabhängigen Servicefunktionen aus `weather_service.py` und `booking_service.py`. Sie ergänzen die manuellen Browser- und Telegram-Tests; eine vollständige Automatisierung des Chatbots war nicht das Ziel. Stattdessen wird die besonders kritische, wiederverwendbare und deterministische Fehlerbehandlungslogik reproduzierbar validiert.
+
+**Tabelle 5: Automatisierte Error-Handling-Testfälle**
+
+| Testfall | Zweck |
+|---|---|
+| Leere Stadteingabe | Prüft, ob fehlende Nutzereingaben verständlich behandelt werden. |
+| Ungültige Stadt / HTTP 404 | Prüft, ob nicht gefundene Städte mit einer spezifischen Meldung beantwortet werden. |
+| Ungültiger API-Key / HTTP 401 | Prüft die sichere Behandlung eines Authentifizierungsfehlers. |
+| Anfragelimit / HTTP 429 | Prüft die Behandlung eines Rate-Limit-Fehlers, ohne das echte API-Limit auszulösen. |
+| Netzwerk-Timeout | Prüft das Verhalten bei Verbindungsproblemen. |
+| Unerwartete JSON-Struktur | Prüft Robustheit gegenüber unerwarteten API-Antworten. |
+| Gültige fiktive Terminbuchung | Prüft den positiven Terminfall. |
+| Ungültiges Datumsformat | Prüft die Datumsvalidierung. |
+| Ungültiges Uhrzeitformat | Prüft die Uhrzeitvalidierung. |
+
+### Aufbau des Testskripts
+
+Das Skript ist bewusst schlank gehalten. Für die Testlogik verwendet es ausschließlich die Python-Standardbibliothek, insbesondere `unittest.mock`, sowie die vorhandenen Projektmodule. Der folgende repräsentative Auszug zeigt die simulierte HTTP-Antwort, die zentrale PASS/FAIL-Auswertung und ausgewählte Wettertests:
+
+```python
+import os
+from unittest.mock import patch
+
+FAKE_API_KEY = "fake-key-for-test"
+
+
+class FakeResponse:
+    def __init__(self, status_code, payload=None):
+        self.status_code = status_code
+        self.payload = payload
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return self.payload
+
+
+def run_test(name, test_callable, expected_substring):
+    try:
+        result = test_callable()
+        if expected_substring in result:
+            return True, f"PASS: {name}"
+        return False, (
+            f"FAIL: {name} – Erwarteter Text nicht gefunden: "
+            f"{expected_substring}"
+        )
+    except Exception as error:
+        return False, f"FAIL: {name} – {type(error).__name__}: {error}"
+
+
+def mocked_weather(city, response=None, side_effect=None):
+    with (
+        patch.dict(
+            os.environ,
+            {"OPENWEATHER_API_KEY": FAKE_API_KEY},
+            clear=False,
+        ),
+        patch("weather_service.load_dotenv"),
+        patch(
+            "weather_service.requests.get",
+            return_value=response,
+            side_effect=side_effect,
+        ),
+    ):
+        return get_weather(city)
+
+
+tests = [
+    (
+        "Ungültige Stadt / HTTP 404",
+        lambda: mocked_weather("xyzstadt123", FakeResponse(404)),
+        "wurde nicht gefunden",
+    ),
+    (
+        "Anfragelimit / HTTP 429",
+        lambda: mocked_weather("Berlin", FakeResponse(429)),
+        "Limit des Wetterdienstes",
+    ),
+]
+```
+
+`patch()` ersetzt `requests.get()` nur vorübergehend. So simuliert das Skript API-Antworten, ohne die reale API aufzurufen. Fiktive HTTP-Statuscodes aktivieren gezielt die jeweiligen Zweige in `get_weather()`. Anschließend wird mit einer Teilzeichenfolgenprüfung kontrolliert, ob die erwartete deutsche Meldung enthalten ist: Bei Übereinstimmung erhält der Test `PASS`, andernfalls `FAIL`. Sobald mindestens ein Test fehlschlägt, beendet sich das Skript mit Statuscode 1. Zusätzlich wird die vollständige Ausgabe nach `reports/error_handling_test_report.txt` geschrieben.
+
+### Testergebnis
+
+**Abbildung 13: Automatisierter Error-Handling-Testbericht**
+
+![Automatisierter Error-Handling-Testbericht](Bilder/Screenshot%2009_automated_error_handling_tests.png)
+
+Diese Abbildung zeigt den erfolgreichen Lauf der automatisierten Error-Handling-Tests. Alle neun Testfälle wurden bestanden. Dadurch wird nachgewiesen, dass zentrale Fehlerfälle für Wetteranfragen und fiktive Terminbuchungen kontrolliert behandelt werden.
+
+Die Terminalausgabe wird zusätzlich als Textbericht in `reports/error_handling_test_report.txt` gespeichert. Der Bericht enthält keine API-Keys, Tokens oder sonstigen Secrets und kann jederzeit mit folgendem Befehl neu erzeugt werden:
+
+```powershell
+python .\tests\run_error_handling_tests.py
+```
+
 # Beispieldialog
 
 ## Telegram
@@ -1132,7 +1235,7 @@ beispiel_dialog.txt
 hinweis_zur_abgabe.txt
 ```
 
-`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den fünf PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild, Description Picture und die manuellen Demo-Tests beider Kanäle dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
+`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den elf PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild, Description Picture sowie die manuellen und automatisierten Tests dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
 
 # Reflexion und Fazit
 
@@ -1142,6 +1245,6 @@ Der JSON-basierte Demo-Modus stellt die Reproduzierbarkeit ohne realen OpenWeath
 
 Die JSON-Dateien verdeutlichen, warum konfigurierbare Software leichter wartbar ist: Demo-Wetterwerte und Texte für Terminbestätigungen lassen sich ändern, ohne die zentrale Python-Logik anzupassen. Diese Trennung unterstützt Wartung, Tests und spätere Erweiterungen. In größeren AI- oder Chatbot-Systemen gewinnt Konfigurationsmanagement zusätzlich an Bedeutung, weil sich beispielsweise Prompts, Routing-Regeln, API-Einstellungen, Rückfalltexte, Testdaten oder Wissensreferenzen im Laufe der Zeit ändern. JSON zeigt in diesem Prototyp auf einfache Weise, wie Anwendungsverhalten konfigurierbar bleibt, statt vollständig hartcodiert zu werden—ein wichtiges Prinzip für wartbare AI-Anwendungen und Multi-Channel-Systeme.
 
-Als nächster Qualitätsschritt könnten automatisierte Tests über eigene Skripte oder Testfunktionen ergänzt werden. Besonders `get_weather()` und `create_booking_confirmation()` eignen sich dafür, weil sie kanalunabhängig sind. Flask-Endpunkte können mit einem Test-Client oder externen Testskripten geprüft werden; Telegram-Befehle lassen sich über isolierte Handler und Mock-Objekte testen.
+Nicht jeder Aspekt des Chatbots wurde in dieser Phase automatisiert. Für die Flask-Benutzeroberfläche und den Telegram-Kanal blieben manuelle Tests notwendig, weil sie reale Benutzerinteraktionen, visuelles Verhalten und die Ende-zu-Ende-Kommunikation prüfen. Automatisiert wurde vorrangig die Fehlerbehandlung, da sie wiederverwendbar, deterministisch und kanalunabhängig ist; besonders die Servicefunktionen in `weather_service.py` und `booking_service.py` eignen sich dafür. Durch Simulation lassen sich seltene oder unerwünschte Fälle wie `HTTP 429` und Netzwerk-Timeouts prüfen, ohne die Entwicklungsumgebung zu beeinträchtigen oder API-Limits zu überschreiten. In einem Produktivsystem könnte die Abdeckung um Unit-, Integrations- und Endpunkt-Tests sowie Monitoring und Logging erweitert werden. Für diese Teilprüfung bietet die Kombination aus manuellen Tests und automatisierten Error-Handling-Tests eine pragmatische und reproduzierbare Validierung des MVP.
 
 Für einen Produktivbetrieb wären außerdem fortlaufendes Monitoring und Wartung erforderlich. Sinnvolle Messpunkte wären strukturierte Fehlerprotokolle, fehlgeschlagene API-Aufrufe, Antwortzeiten, Nutzungsmuster und ungültige Benutzereingaben. Diese Beobachtbarkeit würde helfen, Zuverlässigkeit und Reaktionsfähigkeit langfristig zu sichern. Zusätzlich wären robustere fachliche Datumsvalidierung, Authentifizierung, Rate Limiting und professionelles Secret-Management nötig. Für den akademischen Prototyp wird die Telegram Standard Privacy Policy verwendet; eine separate Datenschutzdatei wird bewusst nicht parallel gepflegt.

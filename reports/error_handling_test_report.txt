@@ -1,0 +1,14 @@
+Automatisierte Fehlerbehandlungstests
+PASS: Leere Stadteingabe
+PASS: Ungültige Stadt / HTTP 404
+PASS: Ungültiger API-Key / HTTP 401
+PASS: Anfragelimit / HTTP 429
+PASS: Netzwerk-Timeout
+PASS: Unerwartete JSON-Struktur
+PASS: Gültige fiktive Terminbuchung
+PASS: Ungültiges Datumsformat
+PASS: Ungültiges Uhrzeitformat
+
+Bestanden: 9
+Fehlgeschlagen: 0
+Status: OK
