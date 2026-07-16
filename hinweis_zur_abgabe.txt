@@ -3,7 +3,7 @@ HINWEIS ZUR ABGABE
 Die Abgabe erfolgt als ZIP-Datei:
 submission/Angie_Angarita_Soto_Teilprüfung 2.zip
 
-Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellcodedateien:
+Die ZIP-Datei enthält ausschließlich die freigegebenen Projekt- und Dokumentationsdateien:
 
 - README.md
 - telegram_bot.py
@@ -33,22 +33,22 @@ Die ZIP-Datei enthält ausschließlich die erlaubten Projektdokumente und Quellc
 - beispiel_dialog.txt
 - hinweis_zur_abgabe.txt
 
-README.md enthält die Hauptlösung mit Aufgabenstellung, Architektur, Umsetzung, Ausführung, Beispielen und Reflexion.
+`README.md` enthält die Hauptlösung mit Aufgabenstellung, Architektur, Umsetzung, Ausführung, Beispielen und Reflexion.
 
 Repository:
 https://github.com/angie86-cmd/ai-development-teilpruefung-2
 
-Der Ordner Bilder/ mit den elf PNG-Dateien ist in der ZIP enthalten. Die Bilder dokumentieren die BotFather-Konfiguration, das Profilbild, das Description Picture sowie die manuellen und automatisierten Tests.
+Der Ordner `Bilder/` mit den elf PNG-Dateien ist in der ZIP-Abgabe enthalten. Die Bilddateien dokumentieren die BotFather-Konfiguration, das Profilbild, das Description Picture sowie die manuellen und automatisierten Tests.
 
-Die Screenshots dokumentieren manuelle Tests ohne und mit aktivem OpenWeatherMap API-Key. Ohne API-Key wurden die Webanwendung und der Telegram-Bot erfolgreich im Demo-Modus getestet. Die Tests mit API-Key zeigen die erfolgreiche OpenWeatherMap-Anbindung; die Tests mit ungültiger Stadt dokumentieren die verbesserte Fehlerbehandlung.
+Die Screenshots dokumentieren manuelle Tests ohne und mit aktivem OpenWeatherMap API-Key. Ohne API-Key wurden die Flask-Webanwendung und der Telegram-Bot erfolgreich im Demo-Modus getestet. Die Tests mit API-Key weisen die erfolgreiche OpenWeatherMap-Anbindung nach; die Tests mit ungültigen Stadtangaben dokumentieren die verbesserte Fehlerbehandlung.
 
-Die `.env`-Datei ist nicht Bestandteil der Abgabe. Es werden keine realen Tokens oder API-Keys im Repository oder ZIP-Archiv gespeichert. Screenshots dürfen keine Tokens, API-Keys oder Inhalte aus `.env` zeigen.
+Die `.env`-Datei ist nicht Bestandteil der Abgabe. Im Repository und in der ZIP-Abgabe werden keine realen Telegram-Tokens, API-Keys oder sonstigen Secrets gespeichert. Die Screenshots enthalten ebenfalls keine Zugangsdaten oder Inhalte aus `.env`.
 
-Das Skript tests/run_error_handling_tests.py prüft zentrale Fehlerbehandlungsfälle im Wetter- und Terminservice automatisiert. Die simulierten API-Fehler werden mit `unittest.mock` erzeugt, sodass keine echten API-Limits ausgelöst werden. Der erzeugte Bericht reports/error_handling_test_report.txt enthält die Prüfergebnisse, jedoch keine Tokens, API-Keys oder sonstigen Zugangsdaten. Die automatisierten Tests ergänzen die manuellen Tests der Webanwendung und des Telegram-Bots. Bilder/Screenshot 09_automated_error_handling_tests.png dokumentiert den erfolgreichen Testlauf.
+Das Skript `tests/run_error_handling_tests.py` prüft zentrale Fehlerbehandlungsfälle im Wetter- und Buchungsservice automatisiert. Die simulierten API-Fehler werden mit `unittest.mock` erzeugt, sodass keine realen Anfragelimits ausgeschöpft werden. Der Bericht `reports/error_handling_test_report.txt` enthält die Prüfergebnisse, jedoch keine Tokens, API-Keys oder sonstigen Zugangsdaten. Die automatisierten Tests ergänzen die manuellen Tests der Flask-Webanwendung und des Telegram-Bots. `Bilder/Screenshot 09_automated_error_handling_tests.png` dokumentiert den erfolgreichen Testlauf.
 
-Die Dateien data/demo_weather_data.json und data/appointment_config.json gehören zum Prototyp. Sie enthalten ausschließlich deterministische Demo-Wetterdaten beziehungsweise einfache Text- und Formatkonfigurationen für fiktive Terminbestätigungen. In den JSON-Dateien sind keine realen API-Schlüssel, Tokens oder sonstigen Secrets gespeichert.
+Die Dateien `data/demo_weather_data.json` und `data/appointment_config.json` gehören zum Prototyp. Sie enthalten ausschließlich deterministische Demo-Wetterdaten beziehungsweise einfache Text- und Formatkonfigurationen für fiktive Terminbestätigungen. In den JSON-Dateien sind keine realen API-Keys, Tokens oder sonstigen Secrets gespeichert.
 
-Für den Bot ist die Telegram Standard Privacy Policy hinterlegt:
+Für den Bot ist die Standard Privacy Policy von Telegram hinterlegt:
 https://telegram.org/privacy-tpa
 
-Es sind keine echten API-Schlüssel, Telegram-Tokens oder sonstigen Secrets enthalten. Eine reale .env-Datei ist nicht Bestandteil der Abgabe. .env.example dokumentiert ausschließlich Platzhalter und die benötigten Umgebungsvariablen. Der Wetter-Demo-Modus ermöglicht einen Test ohne OpenWeatherMap API-Key; zum tatsächlichen Start des Telegram-Kanals wird lokal ein eigenes Telegram-Bot-Token benötigt.
+`.env.example` dokumentiert ausschließlich Platzhalter und die benötigten Umgebungsvariablen. Der Demo-Modus des Wetterservices ermöglicht Tests ohne OpenWeatherMap API-Key; zum tatsächlichen Start des Telegram-Kanals wird lokal ein eigenes Telegram-Bot-Token benötigt.

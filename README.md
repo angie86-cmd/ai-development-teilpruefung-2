@@ -22,9 +22,9 @@ Führe folgende Schritte durch:
 
 Für die Teilprüfung wurde ein Multi-Channel-Chatbot mit zwei Zugangskanälen umgesetzt: Telegram und eine browserbasierte Webanwendung. Beide Kanäle decken die Anwendungsfälle Wetterabfrage und fiktive Terminbuchung ab. Sie greifen auf dieselbe gemeinsame Geschäftslogik zurück, sodass Regeln und Antworten nicht doppelt implementiert werden.
 
-Das Projekt wird mit Git versioniert und kann über GitHub unter [https://github.com/angie86-cmd/ai-development-teilpruefung-2](https://github.com/angie86-cmd/ai-development-teilpruefung-2) bereitgestellt werden. Die finale ZIP-Datei liegt im Verzeichnis `submission/`. Weder die Projektdateien noch die Abgabe enthalten echte Tokens, API-Schlüssel oder andere Secrets. Benötigte Umgebungsvariablen werden ausschließlich durch Platzhalter in `.env.example` dokumentiert.
+Das Projekt wird mit Git versioniert und kann über GitHub unter [https://github.com/angie86-cmd/ai-development-teilpruefung-2](https://github.com/angie86-cmd/ai-development-teilpruefung-2) bereitgestellt werden. Die finale ZIP-Datei liegt im Verzeichnis `submission/`. Weder die Projektdateien noch die Abgabe enthalten echte Tokens, API-Keys oder andere Secrets. Benötigte Umgebungsvariablen werden ausschließlich durch Platzhalter in `.env.example` dokumentiert.
 
-Der Telegram-Bot wurde über BotFather eingerichtet. Die konkrete Bot-Konfiguration, die verwendete Telegram Standard Privacy Policy und die zugehörigen Bildnachweise werden in Abschnitt 1.4 dokumentiert.
+Der Telegram-Bot wurde über BotFather eingerichtet. Die konkrete Bot-Konfiguration, die verwendete Standard Privacy Policy von Telegram und die zugehörigen visuellen Nachweise werden in Abschnitt 1.4 dokumentiert.
 
 ## Projektstruktur und Versionierung
 
@@ -48,7 +48,17 @@ ai-development-teilpruefung-2/
 │   ├── ProfilePic.png
 │   ├── Screenshot 01_BotConfiguration.png
 │   ├── Screenshot 02_test web application.png
-│   └── Screenshot 03_test telegram ohne wheathermap key.png
+│   ├── Screenshot 03_test telegram ohne wheathermap key.png
+│   ├── Screenshot 04_test terminal mit wheathermap key.png
+│   ├── Screenshot 05_test web mit wheathermap key1.png
+│   ├── Screenshot 06_test web mit wheathermap key2.png
+│   ├── Screenshot 07_test web mit wheathermap key3.png
+│   ├── Screenshot 08_test telegram mit wheathermap key.png
+│   └── Screenshot 09_automated_error_handling_tests.png
+├── tests/
+│   └── run_error_handling_tests.py
+├── reports/
+│   └── error_handling_test_report.txt
 ├── requirements.txt
 ├── .env.example
 ├── beispiel_dialog.txt
@@ -72,12 +82,20 @@ ai-development-teilpruefung-2/
 | `static/style.css` | Einfaches responsives Erscheinungsbild ohne externes Framework |
 | `data/demo_weather_data.json` | Deterministische Demo-Wetterdaten für Tests ohne OpenWeatherMap API-Key |
 | `data/appointment_config.json` | Text- und Formatkonfiguration für fiktive Terminbestätigungen |
-| `Bilder/` | Bildnachweise zur Konfiguration und visuellen Darstellung des Telegram-Bots |
+| `Bilder/` | Bilddateien und Screenshots zur Konfiguration sowie zu manuellen und automatisierten Tests |
 | `Bilder/DescriptionPic.png` | Bild für den Telegram-Bereich „What can this bot do?“ |
 | `Bilder/ProfilePic.png` | Profilbild des konfigurierten Telegram-Bots |
 | `Bilder/Screenshot 01_BotConfiguration.png` | Screenshot der BotFather-Konfiguration |
-| `Bilder/Screenshot 02_test web application.png` | Nachweis des manuellen Webtests im Demo-Modus |
+| `Bilder/Screenshot 02_test web application.png` | Nachweis des manuellen Tests der Flask-Webanwendung im Demo-Modus |
 | `Bilder/Screenshot 03_test telegram ohne wheathermap key.png` | Nachweis des manuellen Telegram-Tests im Demo-Modus |
+| `Bilder/Screenshot 04_test terminal mit wheathermap key.png` | Terminaltests mit aktiver OpenWeatherMap-Anbindung |
+| `Bilder/Screenshot 05_test web mit wheathermap key1.png` | Manueller Test der Flask-Webanwendung mit realen Wetterdaten für Berlin |
+| `Bilder/Screenshot 06_test web mit wheathermap key2.png` | Manueller Test der Flask-Webanwendung mit realen Wetterdaten für London |
+| `Bilder/Screenshot 07_test web mit wheathermap key3.png` | Manueller Test der Fehlerbehandlung in der Flask-Webanwendung |
+| `Bilder/Screenshot 08_test telegram mit wheathermap key.png` | Manueller Telegram-Test mit aktiver OpenWeatherMap-Anbindung |
+| `Bilder/Screenshot 09_automated_error_handling_tests.png` | Nachweis der erfolgreichen automatisierten Error-Handling-Tests |
+| `tests/run_error_handling_tests.py` | Automatisierte Tests der kanalunabhängigen Fehlerbehandlung |
+| `reports/error_handling_test_report.txt` | Textbericht der automatisierten Error-Handling-Tests ohne Secrets |
 | `requirements.txt` | Direkte Python-Abhängigkeiten des Projekts |
 | `.env.example` | Vorlage der benötigten und optionalen Umgebungsvariablen ohne Secrets |
 | `beispiel_dialog.txt` | Beispielabläufe für Telegram und Web |
@@ -85,7 +103,7 @@ ai-development-teilpruefung-2/
 | `.gitignore` | Ausschluss lokaler Umgebung, Caches, Secrets und ZIP-Prüfverzeichnis |
 | `submission/Angie_Angarita_Soto_Teilprüfung 2.zip` | Finale Datei zur Einreichung |
 
-Die gewählte Struktur trennt Dokumentation, Telegram-Kanallogik, Web-Kanallogik, gemeinsame Geschäftslogik, Frontend-Dateien, Konfigurationsbeispiele, Bildnachweise und Abgabedateien klar voneinander. `telegram_bot.py` enthält ausschließlich die Telegram-spezifische Kanallogik. Der Webkanal verteilt sich auf `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die von beiden Kanälen verwendeten fachlichen Funktionen liegen zentral in `weather_service.py` und `booking_service.py`. Die beiden JSON-Dateien trennen kleine Demo- und Konfigurationswerte von der Python-Logik. Dadurch wird doppelter Code vermieden und das Projekt lässt sich leichter verstehen, testen, warten und erweitern.
+Die gewählte Struktur trennt Dokumentation, kanalspezifische Logik für Telegram und den Webkanal, gemeinsame Geschäftslogik, Frontend-Dateien, Konfigurationsbeispiele, visuelle Nachweise und Abgabedateien klar voneinander. `telegram_bot.py` enthält ausschließlich die kanalspezifische Logik des Telegram-Kanals. Der Webkanal verteilt sich auf `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die von beiden Kanälen verwendeten fachlichen Funktionen liegen zentral in `weather_service.py` und `booking_service.py`. Die beiden JSON-Dateien trennen kleine Demo- und Konfigurationswerte von der Python-Logik. Dadurch wird doppelter Code vermieden, und das Projekt lässt sich leichter verstehen, testen, warten und erweitern.
 
 Weitere Kanäle wie WhatsApp Business, Microsoft Teams oder Slack könnten später als zusätzliche Adapter ergänzt werden, ohne die zentrale Geschäftslogik neu zu schreiben. `Bilder/` dokumentiert die BotFather-Konfiguration und die visuelle Einrichtung des Bots; `submission/` enthält das finale ZIP-Archiv. Git und GitHub dienen der nachvollziehbaren Versionierung und Dokumentation des Entwicklungsprozesses.
 
@@ -98,7 +116,7 @@ Die Regeln in `.gitignore` trennen lokale oder automatisch erzeugte Dateien von 
 - `.env` und `.env.*` werden ausgeschlossen, weil sie reale Telegram-Bot-Tokens, OpenWeatherMap API-Keys oder lokale Konfiguration enthalten können. `.env.example` ist ausdrücklich ausgenommen, da diese Datei die erforderlichen Umgebungsvariablen ohne echte Secrets dokumentiert.
 - `submission/check_zip/` wird ausgeschlossen, weil dieses temporäre Verzeichnis nur zur Prüfung des ZIP-Archivs vor der Abgabe dient.
 - `.pytest_cache/`, `.DS_Store` und `Thumbs.db` werden ausgeschlossen, da sie lokal durch Testwerkzeuge oder Betriebssysteme entstehen.
-- `Bilder/` wird bewusst nicht ausgeschlossen: Die Bilder dokumentieren die Telegram-BotFather-Konfiguration und gehören zur Projektdokumentation auf GitHub.
+- `Bilder/` wird bewusst nicht ausgeschlossen: Die Bilddateien dokumentieren die BotFather-Konfiguration des Telegram-Bots sowie die Tests und gehören zur Projektdokumentation im Repository.
 - `data/` und die JSON-Dateien werden bewusst nicht ausgeschlossen, da sie benötigte Demo-Daten und sichere Konfigurationswerte des Prototyps enthalten.
 - Das finale ZIP-Archiv in `submission/` wird nicht allgemein ausgeschlossen, damit es entsprechend dem Arbeitsablauf der vorherigen Teilprüfung versioniert werden kann.
 
@@ -171,21 +189,21 @@ Der Bot wurde in BotFather mit folgenden öffentlich sichtbaren Angaben konfigur
   - `/termin 20.07.2026 14:00 - Fiktiven Termin buchen`
 - **Privacy Policy:** [https://telegram.org/privacy-tpa](https://telegram.org/privacy-tpa)
 
-**Abbildung 2: Telegram BotFather-Konfiguration**
+**Abbildung 2: BotFather-Konfiguration des Telegram-Bots**
 
-![Telegram Bot Konfiguration](Bilder/Screenshot%2001_BotConfiguration.png)
+![BotFather-Konfiguration des Telegram-Bots](Bilder/Screenshot%2001_BotConfiguration.png)
 
-Abbildung 2 zeigt die konfigurierte BotFather-Übersicht mit Botname, Beschreibung, Befehlen, Bildkonfiguration und verwendeter Telegram Standard Privacy Policy.
+Abbildung 2 zeigt die konfigurierte BotFather-Übersicht mit Botname, Beschreibung, Befehlen, Bildkonfiguration und der verwendeten Standard Privacy Policy von Telegram.
 
-**Abbildung 3: Telegram Bot Profilbild**
+**Abbildung 3: Profilbild des Telegram-Bots**
 
-![Telegram Bot Profilbild](Bilder/ProfilePic.png)
+![Profilbild des Telegram-Bots](Bilder/ProfilePic.png)
 
 Abbildung 3 zeigt das Profilbild des Bots, das den Wetter- und Termin-Anwendungsfall visuell darstellt.
 
-**Abbildung 4: Telegram Bot Description Picture**
+**Abbildung 4: Description Picture des Telegram-Bots**
 
-![Telegram Bot Description Picture](Bilder/DescriptionPic.png)
+![Description Picture des Telegram-Bots](Bilder/DescriptionPic.png)
 
 Abbildung 4 zeigt das Description Picture, das im Bereich „What can this bot do?“ angezeigt wird.
 
@@ -195,25 +213,25 @@ Abbildung 4 zeigt das Description Picture, das im Bereich „What can this bot d
 
 ## 1.6 Authentifizierung über Umgebungsvariable
 
-Beim Start lädt `python-dotenv` lokale Umgebungsvariablen; `TELEGRAM_BOT_TOKEN` wird anschließend mit `os.getenv()` gelesen. Das Token wird wie ein Passwort beziehungsweise Secret behandelt. Es darf weder in `README.md`, Screenshots, Quellcode, Commits, GitHub noch in der ZIP-Abgabe erscheinen. Eine lokale `.env` ist durch `.gitignore` ausgeschlossen. Die enthaltene `.env.example` dokumentiert dagegen sicher die benötigten Variablen, ohne reale Zugangsdaten offenzulegen.
+Beim Start lädt `python-dotenv` lokale Umgebungsvariablen; `TELEGRAM_BOT_TOKEN` wird anschließend mit `os.getenv()` gelesen. Das Token wird wie ein Passwort beziehungsweise Secret behandelt. Es darf weder in `README.md` noch in Screenshots, im Quellcode, in Commits, im Repository oder in der ZIP-Abgabe erscheinen. Eine lokale `.env` ist durch `.gitignore` ausgeschlossen. Die enthaltene `.env.example` dokumentiert dagegen sicher die benötigten Variablen, ohne reale Zugangsdaten offenzulegen.
 
-Dieses Vorgehen entspricht grundlegenden Sicherheits- und Datenschutzprinzipien. Für den akademischen Prototyp gilt ausschließlich die [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa); eine parallele Datenschutzdatei wird bewusst nicht gepflegt. Die Anwendung speichert keine personenbezogenen Daten dauerhaft, erstellt keine realen Termine und fordert keine sensiblen Daten an.
+Dieses Vorgehen entspricht grundlegenden Sicherheits- und Datenschutzprinzipien. Für den akademischen Prototyp gilt ausschließlich die [Standard Privacy Policy von Telegram](https://telegram.org/privacy-tpa); für diesen Prototyp wird bewusst keine separate Datenschutzdatei gepflegt. Die Anwendung speichert keine personenbezogenen Daten dauerhaft, erstellt keine realen Termine und fordert keine sensiblen Daten an.
 
-## 1.7 Umgang mit fehlendem Telegram Token
+## 1.7 Umgang mit fehlendem Telegram-Token
 
 Ist `TELEGRAM_BOT_TOKEN` leer oder nicht vorhanden, gibt `telegram_bot.py` eine klare deutsche Meldung aus und beendet sich kontrolliert. So entstehen bei der Bewertung weder ein Absturz noch ein unklarer Stacktrace; README und Code können ohne reale Zugangsdaten geprüft werden. Dieses Verhalten ist Teil einer sicheren Konfigurationsbehandlung.
 
-Auch in diesem Fehlerfall bleiben die Schutzregeln unverändert: Kein Token steht in README, Code, Screenshots, GitHub oder ZIP. `.env` bleibt lokal und ignoriert, während `.env.example` als sichere Vorlage enthalten ist. Ergänzend gilt die [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa). Der Prototyp speichert keine personenbezogenen Daten dauerhaft, erzeugt keine echten Termine und verlangt keine sensiblen Angaben.
+Auch in diesem Fehlerfall bleiben die Schutzregeln unverändert: Kein Token steht in der README, im Code, in Screenshots, auf GitHub oder in der ZIP-Abgabe. `.env` bleibt lokal und wird ignoriert, während `.env.example` als sichere Vorlage enthalten ist. Ergänzend gilt die [Standard Privacy Policy von Telegram](https://telegram.org/privacy-tpa). Der Prototyp speichert keine personenbezogenen Daten dauerhaft, erzeugt keine echten Termine und verlangt keine sensiblen Angaben.
 
 ## 1.8 Datenschutz und Bot Privacy Policy
 
-In BotFather ist die [Telegram Standard Privacy Policy](https://telegram.org/privacy-tpa) konfiguriert. Sie ist für diesen akademischen Prototyp angemessen, weil die Anwendung keine personenbezogenen Daten dauerhaft speichert, keine realen Termine erzeugt und keine sensiblen Daten anfordert. Echte Tokens und API-Schlüssel werden ausschließlich lokal über Umgebungsvariablen bereitgestellt und durch `.gitignore` von Git ausgeschlossen.
+In BotFather ist die [Standard Privacy Policy von Telegram](https://telegram.org/privacy-tpa) konfiguriert. Sie ist für diesen akademischen Prototyp angemessen, weil die Anwendung keine personenbezogenen Daten dauerhaft speichert, keine realen Termine erzeugt und keine sensiblen Daten anfordert. Echte Tokens und API-Keys werden ausschließlich lokal über Umgebungsvariablen bereitgestellt und durch `.gitignore` von Git ausgeschlossen.
 
 ## 1.9 Erklärung des Codes für den Telegram-Kanal
 
-`telegram_bot.py` enthält ausschließlich Telegram-spezifische Kanallogik. Die Handler sind als `async def` definiert, weil `python-telegram-bot` ab Version 20 asynchrone Handler verwendet. Wetter- und Terminlogik werden nicht im Telegram-Adapter implementiert, sondern an `weather_service.py` und `booking_service.py` delegiert.
+`telegram_bot.py` enthält ausschließlich kanalspezifische Logik für Telegram. Die Handler sind als `async def` definiert, weil `python-telegram-bot` ab Version 20 asynchrone Handler verwendet. Wetter- und Terminlogik werden nicht im Telegram-Adapter implementiert, sondern an `weather_service.py` und `booking_service.py` delegiert.
 
-### 1.9.1 Funktion main()
+### 1.9.1 Funktion `main()`
 
 `main()` initialisiert den vollständigen Telegram-Kanal und bildet den Einstiegspunkt des Skripts.
 
@@ -240,7 +258,7 @@ def main() -> None:
 
 Die Funktion benötigt keine Parameter und besitzt keinen fachlichen Rückgabewert. Sie lädt lokale Umgebungsvariablen, prüft das Bot-Token, erstellt die Telegram-`Application`, registriert die vier Handler und startet das Polling. Ohne Token beendet sie sich kontrolliert. Diese Initialisierung gehört in `telegram_bot.py`, weil sie ausschließlich den Telegram-Kanal konfiguriert; fachliche Services werden erst durch die registrierten Handler aufgerufen.
 
-### 1.9.2 Funktion start_command()
+### 1.9.2 Funktion `start_command()`
 
 Der Start-Handler begrüßt Benutzerinnen und Benutzer und nennt die zentralen Nutzungsmöglichkeiten.
 
@@ -256,9 +274,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
 ```
 
-Eingaben sind das Telegram-`Update` und der von der Bibliothek bereitgestellte `Context`. Da für `/start` keine Argumente benötigt werden, wird der Kontext verworfen. Als Effekt sendet die Funktion eine Telegram-Nachricht; einen Rückgabewert erzeugt sie nicht. Sie gehört in den Kanaladapter, weil Begrüßung und Nachrichtentransport Telegram-spezifisch sind und kein gemeinsamer Service benötigt wird.
+Eingaben sind das Telegram-`Update` und der von der Bibliothek bereitgestellte `Context`. Da für `/start` keine Argumente benötigt werden, wird der Kontext verworfen. Als Effekt sendet die Funktion eine Telegram-Nachricht; einen Rückgabewert erzeugt sie nicht. Sie gehört in den Kanaladapter, weil Begrüßung und Nachrichtentransport kanalspezifisch sind und kein gemeinsamer Service benötigt wird.
 
-### 1.9.3 Funktion help_command()
+### 1.9.3 Funktion `help_command()`
 
 `help_command()` dokumentiert die verfügbaren Telegram-Befehle unmittelbar im Chat.
 
@@ -277,7 +295,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 Auch dieser asynchrone Handler erhält `Update` und `Context`, benötigt jedoch keine Befehlsargumente. Er sendet einen formatierten Hilfetext und hat keinen fachlichen Rückgabewert. Die Funktion bleibt in `telegram_bot.py`, weil sie die Telegram-Bedienoberfläche beschreibt und weder Wetter- noch Buchungslogik ausführt.
 
-### 1.9.4 Funktion weather_command()
+### 1.9.4 Funktion `weather_command()`
 
 Der Wetter-Handler übersetzt den Telegram-Befehl in einen Aufruf des gemeinsamen Wetterservices.
 
@@ -291,7 +309,7 @@ async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 Die Eingabe besteht aus den Argumenten hinter `/wetter`, die zu einem Stadtnamen verbunden werden. `get_weather()` liefert den deutschen Antworttext, den der Handler anschließend über Telegram sendet. Die Funktion gehört als Übersetzer zwischen Telegram und Service in `telegram_bot.py`; Wetterabfrage, Demo-Modus und Fehlerbehandlung bleiben vollständig in `weather_service.py`.
 
-### 1.9.5 Funktion appointment_command()
+### 1.9.5 Funktion `appointment_command()`
 
 Der Termin-Handler liest Datum und Uhrzeit und delegiert die Validierung an den Buchungsservice.
 
@@ -429,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 Die vier Konstanten referenzieren exakt die IDs aus `templates/index.html`. Dadurch werden Listener und Rückmeldungen erst verbunden, nachdem die Seitenstruktur geladen wurde.
 
-### 2.4.2 Funktion postJson(url, payload)
+### 2.4.2 Funktion `postJson(url, payload)`
 
 Die interne Hilfsfunktion bündelt den wiederkehrenden asynchronen JSON-Aufruf an Flask.
 
@@ -540,11 +558,11 @@ Der Webkanal importiert dieselben Funktionen `get_weather()` und `create_booking
 
 ## 2.9 Wetterservice
 
-### 2.9.1 Funktion get_weather(city)
+### 2.9.1 Funktion `get_weather(city)`
 
 `get_weather(city: str) -> str` ist die zentrale Funktion für Wetteranfragen. Sie erhält einen Stadtnamen, bereinigt die Eingabe und gibt stets einen deutschen Antworttext zurück. Da sie weder Telegram- noch Flask-Objekte verwendet, ist sie kanalunabhängig und kann von beiden Kanälen aufgerufen werden.
 
-Ein `OPENWEATHER_API_KEY` wird nur für reale, produktionsähnliche Wetterdaten von OpenWeatherMap benötigt und ausschließlich aus der gleichnamigen Umgebungsvariable gelesen. Der Schlüssel wird nicht in Quellcode, README, Screenshots, GitHub oder ZIP gespeichert. Fehlt er, verwendet die Funktion stattdessen `data/demo_weather_data.json`. Dadurch bleibt die Anwendung ohne externe Zugangsdaten vollständig testbar.
+Ein `OPENWEATHER_API_KEY` wird nur für reale, produktionsähnliche Wetterdaten von OpenWeatherMap benötigt und ausschließlich aus der gleichnamigen Umgebungsvariable gelesen. Der API-Key wird weder im Quellcode noch in der README, in Screenshots, im Repository oder in der ZIP-Abgabe gespeichert. Fehlt er, verwendet die Funktion stattdessen `data/demo_weather_data.json`. Dadurch bleibt die Anwendung ohne externe Zugangsdaten vollständig testbar.
 
 ### 2.9.2 OpenWeatherMap-Anbindung
 
@@ -627,11 +645,11 @@ def get_weather(city: str) -> str:
         )
 ```
 
-Die Anwendung unterscheidet die wichtigsten Fehlerfälle von OpenWeatherMap gezielt. Eine leere Stadt führt sofort zu einem hilfreichen Eingabehinweis. Ein fehlender API-Key ist kein Fehler, sondern aktiviert bewusst den JSON-basierten Demo-Modus. Eine ungültige oder nicht gefundene Stadt (`HTTP 404`) wird als Problem der Benutzereingabe behandelt und mit einem Hinweis auf Schreibweise und gültige Städtenamen beantwortet. Bei einem ungültigen API-Key (`HTTP 401`) oder einem erreichten Anfragelimit (`HTTP 429`) erscheinen sichere, verständliche Meldungen, ohne den API-Key oder technische Details offenzulegen. Andere HTTP- und Netzwerkfehler, Timeouts, eine unerwartete JSON-Struktur sowie fehlende oder ungültige Werte führen zur allgemeinen Rückfallmeldung. Technische Exceptions werden nicht direkt angezeigt. Das verbessert die Benutzererfahrung und macht den Prototyp robuster.
+Die Anwendung unterscheidet gezielt zwischen den wichtigsten Fehlerfällen von OpenWeatherMap. Bei einer leeren Stadteingabe erscheint sofort ein hilfreicher Eingabehinweis. Ein fehlender API-Key gilt nicht als Fehler, sondern aktiviert den JSON-basierten Demo-Modus. Eine ungültige oder nicht gefundene Stadt (`HTTP 404`) wird als fehlerhafte Benutzereingabe behandelt und mit einem Hinweis zur Schreibweise beziehungsweise zur Eingabe eines gültigen Stadtnamens beantwortet. Bei einem ungültigen API-Key (`HTTP 401`) oder einem erreichten Anfragelimit (`HTTP 429`) erscheinen sichere und verständliche Meldungen, ohne den API-Key oder technische Details offenzulegen. Andere HTTP-Fehler, Netzwerkfehler, Timeouts, unerwartete JSON-Strukturen sowie fehlende oder ungültige Werte führen zu einer allgemeinen, benutzerfreundlichen Fallback-Meldung. Technische Exceptions und Stacktraces werden nicht angezeigt. Dieses Verhalten verbessert die Benutzerfreundlichkeit und erhöht die Robustheit des Prototyps.
 
 ## 2.10 Terminbuchung
 
-### 2.10.1 Funktion create_booking_confirmation(date, time)
+### 2.10.1 Funktion `create_booking_confirmation(date, time)`
 
 `create_booking_confirmation(date: str, time: str) -> str` erzeugt eine fiktive Terminbestätigung. Die Funktion nimmt Datum und Uhrzeit als Zeichenketten entgegen und gibt einen deutschen Bestätigungs- oder Fehlertext zurück. Sie besitzt keine Kanalabhängigkeit, wird von Telegram und Web wiederverwendet und kann isoliert getestet werden.
 
@@ -659,7 +677,7 @@ Web Channel ───────┘
                         └── booking_service.py
 ```
 
-Telegram-spezifischer Code bleibt in `telegram_bot.py`. Web-spezifischer Code liegt in `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die fachlichen Regeln befinden sich dagegen in `weather_service.py` und `booking_service.py`. Diese Trennung der Verantwortlichkeiten ist die zentrale Architekturentscheidung des Projekts.
+Die kanalspezifische Telegram-Logik bleibt in `telegram_bot.py`. Die Logik des Webkanals liegt in `web_app.py`, `templates/index.html`, `static/app.js` und `static/style.css`. Die fachlichen Regeln befinden sich dagegen in `weather_service.py` und `booking_service.py`. Diese Trennung der Verantwortlichkeiten ist die zentrale Architekturentscheidung des Projekts.
 
 ### 2.11.3 Vorteile der Architektur
 
@@ -712,7 +730,7 @@ Der folgende Auszug entspricht dem aktuellen Inhalt der Datei:
 }
 ```
 
-Die Stadtnamen bilden die Schlüssel des JSON-Objekts. Jeder Stadteintrag enthält mit `temperature` und `description` die Werte für Temperatur und Beschreibung. Ist eine Stadt nicht explizit vorhanden, kann der Eintrag `default` als Rückfallwert verwendet werden. `weather_service.py` liest diese Struktur und erzeugt daraus einen deutschen Demo-Wettertext. Da dieselbe Stadt stets dieselben Werte liefert, sind Tests reproduzierbar.
+Die Stadtnamen bilden die Schlüssel des JSON-Objekts. Jeder Stadteintrag enthält mit `temperature` und `description` die Werte für Temperatur und Beschreibung. Ist eine Stadt nicht explizit vorhanden, wird der Eintrag `default` als Fallback-Wert verwendet. `weather_service.py` liest diese Struktur und erzeugt daraus einen deutschen Demo-Wettertext. Da dieselbe Stadt stets dieselben Werte liefert, sind Tests reproduzierbar.
 
 **Workflow der Demo-Wetterdaten:**
 
@@ -765,9 +783,9 @@ Für diese Teilprüfung ist JSON ausreichend, weil die Anwendung ein kleiner Pro
 
 ## 2.13 Erklärung des Codes für die Webanwendung und die gemeinsamen Services
 
-Die Routen `index()`, `weather_api()` und `appointment_api()` sind bereits mit ihrem Originalcode in Abschnitt 2.3 erläutert. Dieser Abschnitt konzentriert sich deshalb auf Serverkonfiguration und gemeinsame Services. `web_app.py` enthält Webkanal-Logik, während `weather_service.py` und `booking_service.py` kanalunabhängige Geschäftslogik bereitstellen.
+Die Routen `index()`, `weather_api()` und `appointment_api()` sind bereits anhand ihres Originalcodes in Abschnitt 2.3 erläutert. Dieser Abschnitt konzentriert sich deshalb auf die Serverkonfiguration und die gemeinsamen Services. `web_app.py` enthält die kanalspezifische Logik des Webkanals, während `weather_service.py` und `booking_service.py` die kanalunabhängige Geschäftslogik bereitstellen.
 
-### 2.13.1 Funktion _is_truthy()
+### 2.13.1 Funktion `_is_truthy()`
 
 Die Hilfsfunktion interpretiert textbasierte Umgebungsvariablen für `FLASK_DEBUG`.
 
@@ -778,7 +796,7 @@ def _is_truthy(value: str) -> bool:
 
 Als Eingabe erhält `_is_truthy()` einen String und gibt einen booleschen Wert zurück. Durch Normalisierung von Leerraum und Groß-/Kleinschreibung werden übliche Wahrheitswerte zuverlässig erkannt. Die Funktion gehört in `web_app.py`, weil sie ausschließlich die lokale Flask-Konfiguration unterstützt.
 
-### 2.13.2 Funktion main() in web_app.py
+### 2.13.2 Funktion `main()` in `web_app.py`
 
 `main()` liest die Serverkonfiguration und startet den lokalen Flask-Entwicklungsserver.
 
@@ -798,7 +816,7 @@ def main() -> None:
 
 Die Funktion benötigt keine Parameter und liefert keinen fachlichen Rückgabewert. Sie lädt Umgebungsvariablen, liest `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG`, wandelt den Port kontrolliert in eine Ganzzahl um und verwendet bei ungültiger Eingabe Port 5000. Abschließend startet sie Flask. Als Einstiegspunkt des Webkanals gehört diese Konfiguration in `web_app.py`.
 
-### 2.13.3 Funktion _demo_weather(city)
+### 2.13.3 Funktion `_demo_weather(city)`
 
 Die interne Hilfsfunktion stellt eine deterministische Alternative zur externen Wetter-API bereit.
 
@@ -826,9 +844,9 @@ def _demo_weather(city: str) -> str:
     )
 ```
 
-`_demo_weather()` erhält einen bereinigten Stadtnamen, liest `data/demo_weather_data.json` und sucht den Stadteintrag unabhängig von Groß- und Kleinschreibung. Für unbekannte Städte wird `default` verwendet. Kann die Datei nicht gelesen oder ausgewertet werden, liefern sichere Python-Standardwerte weiterhin eine deutsche Antwort. Damit bleibt die Bewertung ohne API-Key reproduzierbar. Da diese Rückfalllogik von beiden Kanälen nutzbar ist, befindet sie sich in `weather_service.py`.
+`_demo_weather()` erhält einen bereinigten Stadtnamen, liest `data/demo_weather_data.json` und sucht den Stadteintrag unabhängig von Groß- und Kleinschreibung. Für unbekannte Städte wird `default` verwendet. Kann die Datei nicht gelesen oder ausgewertet werden, liefern sichere Python-Standardwerte weiterhin eine deutsche Antwort. Damit bleibt die Bewertung ohne API-Key reproduzierbar. Da diese Fallback-Logik von beiden Kanälen genutzt wird, befindet sie sich in `weather_service.py`.
 
-### 2.13.4 Funktion get_weather(city)
+### 2.13.4 Funktion `get_weather(city)`
 
 `get_weather()` bildet den zentralen Einstiegspunkt für Live- und Demo-Wetteranfragen.
 
@@ -891,9 +909,9 @@ def get_weather(city: str) -> str:
         )
 ```
 
-Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie eine leere Eingabe. Danach lädt sie `OPENWEATHER_API_KEY`; ohne Schlüssel delegiert sie an `_demo_weather()`. Mit Schlüssel sendet sie Stadt, metrische Einheiten und deutsche Spracheinstellung an OpenWeatherMap. Die Statuscodes `404`, `401` und `429` werden vor der Auswertung der JSON-Antwort gezielt behandelt. Andere HTTP- und Netzwerkfehler sowie fehlende oder ungültige Antwortfelder werden abgefangen und in eine verständliche Rückfallmeldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
+Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie, ob die Eingabe leer ist. Danach lädt sie `OPENWEATHER_API_KEY`; ohne API-Key delegiert sie an `_demo_weather()`. Mit API-Key sendet sie den Stadtnamen, metrische Einheiten und die deutsche Spracheinstellung an OpenWeatherMap. Die Statuscodes `404`, `401` und `429` werden vor der Auswertung der JSON-Antwort gezielt behandelt. Andere HTTP- und Netzwerkfehler sowie fehlende oder ungültige Antwortfelder werden abgefangen und in eine verständliche Fallback-Meldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
 
-### 2.13.5 Funktion create_booking_confirmation(date, time)
+### 2.13.5 Funktion `create_booking_confirmation(date, time)`
 
 Der Buchungsservice validiert die beiden Eingaben und erzeugt eine ausdrücklich fiktive Bestätigung.
 
@@ -955,7 +973,7 @@ Die virtuelle Umgebung `.venv` isoliert die Projektabhängigkeiten von der globa
 
 ## Umgebungsvariablen
 
-`.env.example` dokumentiert die erwarteten Variablen ohne echte Secrets. Für lokale Tests kann eine eigene, durch `.gitignore` ausgeschlossene `.env` angelegt werden. Der Web-Demo-Modus benötigt keinen API-Key, weil `data/demo_weather_data.json` verwendet wird. Für Telegram-Tests ist `TELEGRAM_BOT_TOKEN` lokal erforderlich; für reale OpenWeatherMap-Daten kann `OPENWEATHER_API_KEY` optional konfiguriert werden. `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG` steuern den lokalen Webserver. Die reale `.env` wird weder in GitHub noch in die ZIP-Abgabe aufgenommen.
+`.env.example` dokumentiert die erwarteten Variablen ohne echte Secrets. Für lokale Tests kann eine eigene, durch `.gitignore` ausgeschlossene `.env` angelegt werden. Der Demo-Modus der Flask-Webanwendung benötigt keinen API-Key, weil `data/demo_weather_data.json` verwendet wird. Für Tests des Telegram-Kanals ist `TELEGRAM_BOT_TOKEN` lokal erforderlich; für reale OpenWeatherMap-Daten kann `OPENWEATHER_API_KEY` optional konfiguriert werden. `FLASK_HOST`, `FLASK_PORT` und `FLASK_DEBUG` steuern den lokalen Webserver. Die reale `.env` wird weder in das Repository noch in die ZIP-Abgabe aufgenommen.
 
 ## Webanwendung starten
 
@@ -965,7 +983,7 @@ python web_app.py
 
 Danach ist die Anwendung standardmäßig unter `http://127.0.0.1:5000` erreichbar.
 
-## Telegram Bot starten
+## Telegram-Bot starten
 
 ```powershell
 python telegram_bot.py
@@ -975,7 +993,7 @@ Ohne `TELEGRAM_BOT_TOKEN` beendet sich das Programm kontrolliert und gibt einen 
 
 ## Tests ohne API-Key
 
-Die Anwendung wurde bewusst ohne aktiven OpenWeatherMap API-Key manuell getestet. Ziel dieser Tests war es, den Demo-Modus und das Fallback-Verhalten unabhängig von externen Wetterdiensten zu prüfen. In diesem Modus liest `weather_service.py` die deterministischen Werte aus `data/demo_weather_data.json`; eine Anfrage an die externe Wetter-API ist nicht erforderlich. Da Telegram und die Flask-Webanwendung denselben Wetterservice aufrufen, gilt dieses Verhalten für beide Kanäle. Damit bleibt das Projekt für prüfende Personen ohne externe Zugangsdaten reproduzierbar.
+Die Anwendung wurde bewusst ohne aktiven OpenWeatherMap API-Key manuell getestet. Diese Tests dienten dazu, den Demo-Modus und das Fallback-Verhalten unabhängig von externen Wetterdiensten zu prüfen. In diesem Modus liest `weather_service.py` die deterministischen Werte aus `data/demo_weather_data.json`; eine Anfrage an die externe Wetter-API ist nicht erforderlich. Da der Telegram-Kanal und die Flask-Webanwendung denselben Wetterservice aufrufen, gilt dieses Verhalten für beide Kanäle. Damit bleibt das Projekt für prüfende Personen ohne externe Zugangsdaten reproduzierbar.
 
 Folgende manuelle Tests wurden durchgeführt:
 
@@ -989,7 +1007,7 @@ Folgende manuelle Tests wurden durchgeführt:
 - Telegram mit `/termin 20.07.2026 14:00` getestet
 - Telegram mit `/termin 21.07.2026 15:00` getestet
 
-Die Webanwendung zeigte deterministische Demo-Wetterdaten und eine fiktive Terminbestätigung an. Der Telegram-Bot lieferte ebenfalls Demo-Wetterdaten sowie fiktive Terminbestätigungen. Auch die nicht explizit hinterlegte Stadt Paris wurde über den definierten Standardwert beantwortet. Weder Anwendung noch Bot stürzten ab; stattdessen erschienen verständliche deutsche Meldungen. Damit ist das Fallback-Verhalten nachgewiesen: Das System bleibt ohne API-Key im Demo-Modus nutzbar und testbar.
+Die Flask-Webanwendung zeigte deterministische Demo-Wetterdaten und eine fiktive Terminbestätigung an. Der Telegram-Bot lieferte ebenfalls Demo-Wetterdaten sowie fiktive Terminbestätigungen. Auch die nicht explizit hinterlegte Stadt Paris wurde über den definierten Standardwert beantwortet. Beide Kanäle blieben stabil und gaben verständliche deutsche Meldungen aus. Damit ist das Fallback-Verhalten nachgewiesen: Das System bleibt ohne API-Key im Demo-Modus nutzbar und testbar.
 
 ### Manuelle Testergebnisse ohne OpenWeatherMap API-Key
 
@@ -1007,7 +1025,7 @@ Diese Abbildung zeigt den erfolgreichen Test des Telegram-Bots im Polling-Modus.
 
 ## Tests mit API-Key
 
-Nach der Aktivierung des OpenWeatherMap API-Keys wurde die Anwendung erneut manuell getestet. Der API-Key war ausschließlich lokal in `.env` gespeichert und ist weder in dieser README, im Quellcode, in den Screenshots, im GitHub-Repository noch in der ZIP-Abgabe enthalten. `weather_service.py` liest ihn über die Umgebungsvariable `OPENWEATHER_API_KEY`. Mit aktivem API-Key liefern gültige Städtenamen reale Wetterdaten von OpenWeatherMap. Ungültige Städtenamen führen zu einer spezifischen, benutzerfreundlichen Meldung. Der Telegram-Bot und die Flask-Webanwendung verwenden dafür dieselbe Wetterlogik aus `weather_service.py`.
+Nach der Aktivierung des OpenWeatherMap API-Keys wurde die Anwendung erneut manuell getestet. Der API-Key war ausschließlich lokal in `.env` gespeichert und ist weder in der README noch im Quellcode, in den Screenshots, im Repository oder in der ZIP-Abgabe enthalten. `weather_service.py` liest ihn über die Umgebungsvariable `OPENWEATHER_API_KEY`. Mit aktivem API-Key liefern gültige Städtenamen reale Wetterdaten von OpenWeatherMap; ungültige Städtenamen führen zu einer spezifischen, benutzerfreundlichen Meldung. Der Telegram-Kanal und die Flask-Webanwendung verwenden dafür dieselbe Wetterlogik aus `weather_service.py`.
 
 Folgende manuelle Tests wurden durchgeführt:
 
@@ -1027,7 +1045,7 @@ Folgende manuelle Tests wurden durchgeführt:
 - Telegram-Bot mit gültigem `/termin 20.07.2026 14:00` getestet
 - Telegram-Bot mit ungültigen Datumsformaten getestet
 
-Gültige Städte lieferten reale Wetterdaten, beispielsweise `Wetter für Berlin: 24.0 °C, Klarer Himmel.` Für die ungültige Stadt wurde die spezifische Meldung `Die Stadt „xyzstadt123“ wurde nicht gefunden. Bitte prüfen Sie die Schreibweise oder geben Sie eine gültige Stadt ein.` ausgegeben. Dieser Test validiert die `HTTP 404`-Behandlung für ungültige Stadtnamen. Gültige Termindaten führten zu einer fiktiven Buchungsbestätigung; bei einem ungültigen Datumsformat erschien `Bitte verwenden Sie für das Datum das Format DD.MM.YYYY.` Die Anwendung stürzte nicht ab, und alle Meldungen blieben für Benutzerinnen und Benutzer verständlich. Dasselbe Verhalten war in den Terminaltests, in der Flask-Webanwendung und im Telegram-Bot verfügbar.
+Gültige Städte lieferten reale Wetterdaten, beispielsweise `Wetter für Berlin: 24.0 °C, Klarer Himmel.` Für die ungültige Stadt wurde die spezifische Meldung `Die Stadt „xyzstadt123“ wurde nicht gefunden. Bitte prüfen Sie die Schreibweise oder geben Sie eine gültige Stadt ein.` ausgegeben. Dieser Test validiert die `HTTP 404`-Behandlung für ungültige Stadtnamen. Gültige Termindaten führten zu einer fiktiven Buchungsbestätigung; bei einem ungültigen Datumsformat erschien `Bitte verwenden Sie für das Datum das Format DD.MM.YYYY.` Die Anwendung blieb stabil, und alle Meldungen waren für Benutzerinnen und Benutzer verständlich. Dasselbe Verhalten zeigte sich in den Terminaltests, in der Flask-Webanwendung und im Telegram-Bot.
 
 ### Manuelle Testergebnisse mit OpenWeatherMap API-Key
 
@@ -1063,9 +1081,9 @@ Diese Abbildung zeigt den Telegram-Bot im Polling-Modus mit aktivem OpenWeatherM
 
 ## Automatisierte Error-Handling-Tests
 
-Ergänzend zu den manuellen Tests wurden automatisierte Error-Handling-Tests hinzugefügt. Sie prüfen zusätzliche Fehlerfälle, ohne Fehler im Browser oder in Telegram manuell erzwingen zu müssen. Insbesondere Authentifizierungsfehler und Rate Limits sollen nicht absichtlich gegen die reale OpenWeatherMap API ausgelöst werden. Das Skript `tests/run_error_handling_tests.py` simuliert externe API-Antworten deshalb mit `unittest.mock`. Dadurch wird die Entwicklungsumgebung weder unnötig belastet noch beschädigt, und das reale API-Limit wird nicht überschritten.
+Ergänzend zu den manuellen Tests wurden automatisierte Error-Handling-Tests hinzugefügt. Sie decken weitere Fehlerfälle ab, ohne diese im Browser oder in Telegram manuell hervorrufen zu müssen. Insbesondere Authentifizierungsfehler und Rate Limits sollen nicht absichtlich gegenüber der realen OpenWeatherMap-API ausgelöst werden. Das Skript `tests/run_error_handling_tests.py` simuliert externe API-Antworten deshalb mit `unittest.mock`. So bleibt die Entwicklungsumgebung unbeeinträchtigt, und das reale Anfragelimit wird nicht beansprucht.
 
-Die Tests konzentrieren sich auf die kanalunabhängigen Servicefunktionen aus `weather_service.py` und `booking_service.py`. Sie ergänzen die manuellen Browser- und Telegram-Tests; eine vollständige Automatisierung des Chatbots war nicht das Ziel. Stattdessen wird die besonders kritische, wiederverwendbare und deterministische Fehlerbehandlungslogik reproduzierbar validiert.
+Die Tests konzentrieren sich auf die kanalunabhängigen Servicefunktionen aus `weather_service.py` und `booking_service.py`. Sie ergänzen die manuellen Tests der Flask-Webanwendung und des Telegram-Kanals; eine vollständige Automatisierung des Chatbots war nicht das Ziel. Stattdessen wird die kritische, wiederverwendbare und deterministische Fehlerbehandlungslogik reproduzierbar validiert.
 
 **Tabelle 5: Automatisierte Error-Handling-Testfälle**
 
@@ -1074,7 +1092,7 @@ Die Tests konzentrieren sich auf die kanalunabhängigen Servicefunktionen aus `w
 | Leere Stadteingabe | Prüft, ob fehlende Nutzereingaben verständlich behandelt werden. |
 | Ungültige Stadt / HTTP 404 | Prüft, ob nicht gefundene Städte mit einer spezifischen Meldung beantwortet werden. |
 | Ungültiger API-Key / HTTP 401 | Prüft die sichere Behandlung eines Authentifizierungsfehlers. |
-| Anfragelimit / HTTP 429 | Prüft die Behandlung eines Rate-Limit-Fehlers, ohne das echte API-Limit auszulösen. |
+| Anfragelimit / HTTP 429 | Prüft die Behandlung eines Rate-Limit-Fehlers, ohne das reale Anfragelimit auszuschöpfen. |
 | Netzwerk-Timeout | Prüft das Verhalten bei Verbindungsproblemen. |
 | Unerwartete JSON-Struktur | Prüft Robustheit gegenüber unerwarteten API-Antworten. |
 | Gültige fiktive Terminbuchung | Prüft den positiven Terminfall. |
@@ -1148,7 +1166,7 @@ tests = [
 ]
 ```
 
-`patch()` ersetzt `requests.get()` nur vorübergehend. So simuliert das Skript API-Antworten, ohne die reale API aufzurufen. Fiktive HTTP-Statuscodes aktivieren gezielt die jeweiligen Zweige in `get_weather()`. Anschließend wird mit einer Teilzeichenfolgenprüfung kontrolliert, ob die erwartete deutsche Meldung enthalten ist: Bei Übereinstimmung erhält der Test `PASS`, andernfalls `FAIL`. Sobald mindestens ein Test fehlschlägt, beendet sich das Skript mit Statuscode 1. Zusätzlich wird die vollständige Ausgabe nach `reports/error_handling_test_report.txt` geschrieben.
+`patch()` ersetzt `requests.get()` nur vorübergehend. Dadurch simuliert das Skript API-Antworten, ohne die reale API aufzurufen. Fiktive HTTP-Statuscodes aktivieren gezielt die jeweiligen Zweige in `get_weather()`. Anschließend prüft eine Teilzeichenfolgensuche, ob die erwartete deutsche Meldung enthalten ist. Bei einer Übereinstimmung erhält der Test den Status `PASS`, andernfalls `FAIL`. Sobald mindestens ein Test fehlschlägt, beendet sich das Skript mit Statuscode 1. Zusätzlich wird die vollständige Ausgabe in `reports/error_handling_test_report.txt` geschrieben.
 
 ### Testergebnis
 
@@ -1156,7 +1174,7 @@ tests = [
 
 ![Automatisierter Error-Handling-Testbericht](Bilder/Screenshot%2009_automated_error_handling_tests.png)
 
-Diese Abbildung zeigt den erfolgreichen Lauf der automatisierten Error-Handling-Tests. Alle neun Testfälle wurden bestanden. Dadurch wird nachgewiesen, dass zentrale Fehlerfälle für Wetteranfragen und fiktive Terminbuchungen kontrolliert behandelt werden.
+Diese Abbildung zeigt den erfolgreichen Lauf der automatisierten Error-Handling-Tests. Alle neun Testfälle wurden erfolgreich abgeschlossen. Damit ist nachgewiesen, dass zentrale Fehlerfälle bei Wetteranfragen und fiktiven Terminbuchungen kontrolliert behandelt werden.
 
 Die Terminalausgabe wird zusätzlich als Textbericht in `reports/error_handling_test_report.txt` gespeichert. Der Bericht enthält keine API-Keys, Tokens oder sonstigen Secrets und kann jederzeit mit folgendem Befehl neu erzeugt werden:
 
@@ -1211,7 +1229,7 @@ Weitere Beispiele für `/start`, `/hilfe` und beide Kanäle enthält `beispiel_d
 
 # Hinweis zur Abgabe
 
-Die ZIP-Datei trägt den Namen `Angie_Angarita_Soto_Teilprüfung 2.zip` und liegt im Verzeichnis `submission/`. Sie enthält ausschließlich erlaubte Dateitypen und folgende Dateien:
+Die ZIP-Datei trägt den Namen `Angie_Angarita_Soto_Teilprüfung 2.zip` und liegt im Verzeichnis `submission/`. Sie enthält ausschließlich die freigegebenen Dateitypen und folgende Dateien:
 
 ```text
 README.md
@@ -1224,18 +1242,28 @@ static/app.js
 static/style.css
 data/demo_weather_data.json
 data/appointment_config.json
+tests/run_error_handling_tests.py
+reports/error_handling_test_report.txt
 Bilder/DescriptionPic.png
 Bilder/ProfilePic.png
 Bilder/Screenshot 01_BotConfiguration.png
 Bilder/Screenshot 02_test web application.png
 Bilder/Screenshot 03_test telegram ohne wheathermap key.png
+Bilder/Screenshot 04_test terminal mit wheathermap key.png
+Bilder/Screenshot 05_test web mit wheathermap key1.png
+Bilder/Screenshot 06_test web mit wheathermap key2.png
+Bilder/Screenshot 07_test web mit wheathermap key3.png
+Bilder/Screenshot 08_test telegram mit wheathermap key.png
+Bilder/Screenshot 09_automated_error_handling_tests.png
 requirements.txt
 .env.example
 beispiel_dialog.txt
 hinweis_zur_abgabe.txt
 ```
 
-`README.md` enthält die Hauptlösung. Die beiden Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp, jedoch keine Secrets. `.env.example` ist als Konfigurationsvorlage enthalten; eine reale `.env` wird nicht aufgenommen. Die Abgabe enthält keine echten API-Schlüssel, Tokens oder sonstigen Secrets. Der Ordner `Bilder/` mit den elf PNG-Dateien ist Bestandteil der ZIP, weil er BotFather-Konfiguration, Profilbild, Description Picture sowie die manuellen und automatisierten Tests dokumentiert. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
+`README.md` enthält die Hauptlösung. Die Python-Dateien bilden den Telegram-Kanal, die Flask-Webanwendung und die gemeinsame Geschäftslogik ab; die Frontend-Dateien unter `templates/` und `static/` stellen die browserbasierte Oberfläche bereit. Die beiden JSON-Dateien unter `data/` enthalten ausschließlich Demo-Wetterdaten und einfache Konfigurationswerte für den Prototyp. Das Testskript und der zugehörige Bericht dokumentieren die automatisierte Prüfung der Fehlerbehandlung.
+
+`.env.example` ist als sichere Konfigurationsvorlage enthalten; eine reale `.env` ist nicht Bestandteil der ZIP-Abgabe. Weder das Repository noch die Abgabe enthalten reale API-Keys, Telegram-Tokens oder sonstige Secrets. Auch die Screenshots und `reports/error_handling_test_report.txt` enthalten keine Zugangsdaten oder Inhalte aus `.env`. Der Ordner `Bilder/` mit den elf PNG-Dateien dokumentiert die BotFather-Konfiguration, das Profilbild, das Description Picture sowie die manuellen und automatisierten Tests. Ergänzende Informationen stehen in `hinweis_zur_abgabe.txt`.
 
 # Reflexion und Fazit
 
@@ -1243,8 +1271,8 @@ Das Projekt demonstriert eine übersichtliche Multi-Channel-Chatbot-Architektur.
 
 Der JSON-basierte Demo-Modus stellt die Reproduzierbarkeit ohne realen OpenWeatherMap API-Key sicher. Die Lösung kann durch zusätzliche Kanaladapter für WhatsApp Business, Microsoft Teams oder Slack erweitert werden. Neue Anwendungsfälle ließen sich durch weitere Services oder Routing-Logik ergänzen, ohne die bestehenden Kanäle grundlegend umzubauen. Der aktuelle Prototyp konzentriert sich bewusst auf ein klares, nachvollziehbares Minimum Viable Product.
 
-Die JSON-Dateien verdeutlichen, warum konfigurierbare Software leichter wartbar ist: Demo-Wetterwerte und Texte für Terminbestätigungen lassen sich ändern, ohne die zentrale Python-Logik anzupassen. Diese Trennung unterstützt Wartung, Tests und spätere Erweiterungen. In größeren AI- oder Chatbot-Systemen gewinnt Konfigurationsmanagement zusätzlich an Bedeutung, weil sich beispielsweise Prompts, Routing-Regeln, API-Einstellungen, Rückfalltexte, Testdaten oder Wissensreferenzen im Laufe der Zeit ändern. JSON zeigt in diesem Prototyp auf einfache Weise, wie Anwendungsverhalten konfigurierbar bleibt, statt vollständig hartcodiert zu werden—ein wichtiges Prinzip für wartbare AI-Anwendungen und Multi-Channel-Systeme.
+Die JSON-Dateien verdeutlichen, warum konfigurierbare Software leichter wartbar ist: Demo-Wetterwerte und Texte für Terminbestätigungen lassen sich ändern, ohne die zentrale Python-Logik anzupassen. Diese Trennung unterstützt Wartung, Tests und spätere Erweiterungen. In größeren AI- oder Chatbot-Systemen gewinnt Konfigurationsmanagement zusätzlich an Bedeutung, weil sich beispielsweise Prompts, Routing-Regeln, API-Einstellungen, Fallback-Texte, Testdaten oder Wissensreferenzen im Laufe der Zeit ändern. JSON zeigt in diesem Prototyp auf einfache Weise, wie Anwendungsverhalten konfigurierbar bleibt, statt vollständig hartcodiert zu werden – ein wichtiges Prinzip für wartbare AI-Anwendungen und Multi-Channel-Systeme.
 
 Nicht jeder Aspekt des Chatbots wurde in dieser Phase automatisiert. Für die Flask-Benutzeroberfläche und den Telegram-Kanal blieben manuelle Tests notwendig, weil sie reale Benutzerinteraktionen, visuelles Verhalten und die Ende-zu-Ende-Kommunikation prüfen. Automatisiert wurde vorrangig die Fehlerbehandlung, da sie wiederverwendbar, deterministisch und kanalunabhängig ist; besonders die Servicefunktionen in `weather_service.py` und `booking_service.py` eignen sich dafür. Durch Simulation lassen sich seltene oder unerwünschte Fälle wie `HTTP 429` und Netzwerk-Timeouts prüfen, ohne die Entwicklungsumgebung zu beeinträchtigen oder API-Limits zu überschreiten. In einem Produktivsystem könnte die Abdeckung um Unit-, Integrations- und Endpunkt-Tests sowie Monitoring und Logging erweitert werden. Für diese Teilprüfung bietet die Kombination aus manuellen Tests und automatisierten Error-Handling-Tests eine pragmatische und reproduzierbare Validierung des MVP.
 
-Für einen Produktivbetrieb wären außerdem fortlaufendes Monitoring und Wartung erforderlich. Sinnvolle Messpunkte wären strukturierte Fehlerprotokolle, fehlgeschlagene API-Aufrufe, Antwortzeiten, Nutzungsmuster und ungültige Benutzereingaben. Diese Beobachtbarkeit würde helfen, Zuverlässigkeit und Reaktionsfähigkeit langfristig zu sichern. Zusätzlich wären robustere fachliche Datumsvalidierung, Authentifizierung, Rate Limiting und professionelles Secret-Management nötig. Für den akademischen Prototyp wird die Telegram Standard Privacy Policy verwendet; eine separate Datenschutzdatei wird bewusst nicht parallel gepflegt.
+Für einen Produktivbetrieb wären außerdem fortlaufendes Monitoring und regelmäßige Wartung erforderlich. Sinnvolle Messpunkte wären strukturierte Fehlerprotokolle, fehlgeschlagene API-Aufrufe, Antwortzeiten, Nutzungsmuster und ungültige Benutzereingaben. Diese Beobachtbarkeit würde dazu beitragen, Zuverlässigkeit und Reaktionsfähigkeit langfristig zu sichern. Zusätzlich wären eine robustere fachliche Datumsvalidierung, Authentifizierung, Rate Limiting und professionelles Secret-Management erforderlich. Für den akademischen Prototyp gilt die Standard Privacy Policy von Telegram; eine separate Datenschutzdatei wird für diesen Prototyp bewusst nicht gepflegt.
