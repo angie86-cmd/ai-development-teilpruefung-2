@@ -3,6 +3,7 @@
 # API-Schlüssel werden ausschließlich aus der Umgebung gelesen und nie hartcodiert.
 
 import json
+import math
 import os
 from pathlib import Path
 
@@ -61,11 +62,36 @@ def get_weather(city: str) -> str:
         response = requests.get(
             OPENWEATHER_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS
         )
+        if response.status_code == 404:
+            return (
+                f"Die Stadt „{normalized_city}“ wurde nicht gefunden. Bitte prüfen Sie "
+                "die Schreibweise oder geben Sie eine gültige Stadt ein."
+            )
+        if response.status_code == 401:
+            return (
+                "Der Wetterdienst konnte nicht authentifiziert werden. Bitte prüfen Sie "
+                "die lokal konfigurierte OpenWeatherMap API-Key."
+            )
+        if response.status_code == 429:
+            return (
+                "Das Limit des Wetterdienstes wurde erreicht. Bitte versuchen Sie es "
+                "später erneut."
+            )
         response.raise_for_status()
         data = response.json()
         temperature = data["main"]["temp"]
         description = data["weather"][0]["description"]
         resolved_city = data.get("name") or normalized_city
+        if (
+            isinstance(temperature, bool)
+            or not isinstance(temperature, (int, float))
+            or not math.isfinite(temperature)
+            or not isinstance(description, str)
+            or not description.strip()
+            or not isinstance(resolved_city, str)
+            or not resolved_city.strip()
+        ):
+            raise ValueError
         return f"Wetter für {resolved_city}: {temperature:.1f} °C, {description}."
     except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
         return (

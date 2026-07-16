@@ -589,11 +589,36 @@ def get_weather(city: str) -> str:
         response = requests.get(
             OPENWEATHER_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS
         )
+        if response.status_code == 404:
+            return (
+                f"Die Stadt „{normalized_city}“ wurde nicht gefunden. Bitte prüfen Sie "
+                "die Schreibweise oder geben Sie eine gültige Stadt ein."
+            )
+        if response.status_code == 401:
+            return (
+                "Der Wetterdienst konnte nicht authentifiziert werden. Bitte prüfen Sie "
+                "die lokal konfigurierte OpenWeatherMap API-Key."
+            )
+        if response.status_code == 429:
+            return (
+                "Das Limit des Wetterdienstes wurde erreicht. Bitte versuchen Sie es "
+                "später erneut."
+            )
         response.raise_for_status()
         data = response.json()
         temperature = data["main"]["temp"]
         description = data["weather"][0]["description"]
         resolved_city = data.get("name") or normalized_city
+        if (
+            isinstance(temperature, bool)
+            or not isinstance(temperature, (int, float))
+            or not math.isfinite(temperature)
+            or not isinstance(description, str)
+            or not description.strip()
+            or not isinstance(resolved_city, str)
+            or not resolved_city.strip()
+        ):
+            raise ValueError
         return f"Wetter für {resolved_city}: {temperature:.1f} °C, {description}."
     except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
         return (
@@ -602,7 +627,7 @@ def get_weather(city: str) -> str:
         )
 ```
 
-Eine leere Stadt führt sofort zu einem hilfreichen Eingabehinweis. Ein fehlender API-Key ist dagegen kein Fehler, sondern aktiviert bewusst den JSON-basierten Demo-Modus. Bei Live-Anfragen erkennt `response.raise_for_status()` fehlerhafte HTTP-Statuscodes. Netzwerkprobleme, eine unerwartete JSON-Struktur, fehlende Felder und ungültige Werte werden gemeinsam abgefangen. Benutzerinnen und Benutzer erhalten dadurch eine freundliche deutsche Rückfallmeldung statt eines technischen Stacktraces. Für den Prototyp ist dies wichtig, weil die Anwendung auch bei Ausfällen externer APIs nachvollziehbar geprüft werden kann.
+Die Anwendung unterscheidet die wichtigsten Fehlerfälle von OpenWeatherMap gezielt. Eine leere Stadt führt sofort zu einem hilfreichen Eingabehinweis. Ein fehlender API-Key ist kein Fehler, sondern aktiviert bewusst den JSON-basierten Demo-Modus. Eine ungültige oder nicht gefundene Stadt (`HTTP 404`) wird als Problem der Benutzereingabe behandelt und mit einem Hinweis auf Schreibweise und gültige Städtenamen beantwortet. Bei einem ungültigen API-Key (`HTTP 401`) oder einem erreichten Anfragelimit (`HTTP 429`) erscheinen sichere, verständliche Meldungen, ohne den API-Key oder technische Details offenzulegen. Andere HTTP- und Netzwerkfehler, Timeouts, eine unerwartete JSON-Struktur sowie fehlende oder ungültige Werte führen zur allgemeinen Rückfallmeldung. Technische Exceptions werden nicht direkt angezeigt. Das verbessert die Benutzererfahrung und macht den Prototyp robuster.
 
 ## 2.10 Terminbuchung
 
@@ -828,11 +853,36 @@ def get_weather(city: str) -> str:
         response = requests.get(
             OPENWEATHER_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS
         )
+        if response.status_code == 404:
+            return (
+                f"Die Stadt „{normalized_city}“ wurde nicht gefunden. Bitte prüfen Sie "
+                "die Schreibweise oder geben Sie eine gültige Stadt ein."
+            )
+        if response.status_code == 401:
+            return (
+                "Der Wetterdienst konnte nicht authentifiziert werden. Bitte prüfen Sie "
+                "die lokal konfigurierte OpenWeatherMap API-Key."
+            )
+        if response.status_code == 429:
+            return (
+                "Das Limit des Wetterdienstes wurde erreicht. Bitte versuchen Sie es "
+                "später erneut."
+            )
         response.raise_for_status()
         data = response.json()
         temperature = data["main"]["temp"]
         description = data["weather"][0]["description"]
         resolved_city = data.get("name") or normalized_city
+        if (
+            isinstance(temperature, bool)
+            or not isinstance(temperature, (int, float))
+            or not math.isfinite(temperature)
+            or not isinstance(description, str)
+            or not description.strip()
+            or not isinstance(resolved_city, str)
+            or not resolved_city.strip()
+        ):
+            raise ValueError
         return f"Wetter für {resolved_city}: {temperature:.1f} °C, {description}."
     except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
         return (
@@ -841,7 +891,7 @@ def get_weather(city: str) -> str:
         )
 ```
 
-Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie eine leere Eingabe. Danach lädt sie `OPENWEATHER_API_KEY`; ohne Schlüssel delegiert sie an `_demo_weather()`. Mit Schlüssel sendet sie Stadt, metrische Einheiten und deutsche Spracheinstellung an OpenWeatherMap. HTTP-Fehler und fehlende oder ungültige Antwortfelder werden gemeinsam abgefangen und in eine verständliche Rückfallmeldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
+Die Funktion erhält den Stadtnamen und gibt in jedem Ausführungspfad einen deutschen String zurück. Zunächst prüft sie eine leere Eingabe. Danach lädt sie `OPENWEATHER_API_KEY`; ohne Schlüssel delegiert sie an `_demo_weather()`. Mit Schlüssel sendet sie Stadt, metrische Einheiten und deutsche Spracheinstellung an OpenWeatherMap. Die Statuscodes `404`, `401` und `429` werden vor der Auswertung der JSON-Antwort gezielt behandelt. Andere HTTP- und Netzwerkfehler sowie fehlende oder ungültige Antwortfelder werden abgefangen und in eine verständliche Rückfallmeldung übersetzt. Die Funktion bleibt frei von Telegram- und Flask-Objekten und kann deshalb von beiden Kanälen verwendet werden.
 
 ### 2.13.5 Funktion create_booking_confirmation(date, time)
 
@@ -923,9 +973,9 @@ python telegram_bot.py
 
 Ohne `TELEGRAM_BOT_TOKEN` beendet sich das Programm kontrolliert und gibt einen klaren deutschen Hinweis aus.
 
-## Test ohne API-Keys
+## Tests ohne API-Key
 
-Die Anwendung wurde bewusst ohne gültigen OpenWeatherMap API-Key manuell getestet. Ziel dieses Testszenarios war es, den Rückfall- und Demo-Modus unabhängig von externen Wetterdiensten zu prüfen. In diesem Modus liest `weather_service.py` die deterministischen Werte aus `data/demo_weather_data.json`; eine Anfrage an die externe Wetter-API ist nicht erforderlich. Da Telegram und die Flask-Webanwendung denselben Wetterservice aufrufen, gilt dieses Verhalten für beide Kanäle. Damit bleibt das Projekt für prüfende Personen ohne externe Zugangsdaten reproduzierbar.
+Die Anwendung wurde bewusst ohne aktiven OpenWeatherMap API-Key manuell getestet. Ziel dieser Tests war es, den Demo-Modus und das Fallback-Verhalten unabhängig von externen Wetterdiensten zu prüfen. In diesem Modus liest `weather_service.py` die deterministischen Werte aus `data/demo_weather_data.json`; eine Anfrage an die externe Wetter-API ist nicht erforderlich. Da Telegram und die Flask-Webanwendung denselben Wetterservice aufrufen, gilt dieses Verhalten für beide Kanäle. Damit bleibt das Projekt für prüfende Personen ohne externe Zugangsdaten reproduzierbar.
 
 Folgende manuelle Tests wurden durchgeführt:
 
@@ -939,9 +989,9 @@ Folgende manuelle Tests wurden durchgeführt:
 - Telegram mit `/termin 20.07.2026 14:00` getestet
 - Telegram mit `/termin 21.07.2026 15:00` getestet
 
-Die Webanwendung zeigte deterministische Demo-Wetterdaten und eine fiktive Terminbestätigung an. Der Telegram-Bot lieferte ebenfalls Demo-Wetterdaten sowie fiktive Terminbestätigungen. Auch die nicht explizit hinterlegte Stadt Paris wurde über den definierten Standardwert beantwortet. Weder Anwendung noch Bot stürzten ab; stattdessen erschienen verständliche deutsche Meldungen. Damit ist nachgewiesen, dass das System auch bei nicht konfigurierter oder nicht verfügbarer externer Wetter-API nutzbar und testbar bleibt.
+Die Webanwendung zeigte deterministische Demo-Wetterdaten und eine fiktive Terminbestätigung an. Der Telegram-Bot lieferte ebenfalls Demo-Wetterdaten sowie fiktive Terminbestätigungen. Auch die nicht explizit hinterlegte Stadt Paris wurde über den definierten Standardwert beantwortet. Weder Anwendung noch Bot stürzten ab; stattdessen erschienen verständliche deutsche Meldungen. Damit ist das Fallback-Verhalten nachgewiesen: Das System bleibt ohne API-Key im Demo-Modus nutzbar und testbar.
 
-## Manuelle Testergebnisse ohne OpenWeatherMap API-Key
+### Manuelle Testergebnisse ohne OpenWeatherMap API-Key
 
 **Abbildung 6: Test der Flask-Webanwendung ohne OpenWeatherMap API-Key**
 
@@ -954,6 +1004,62 @@ Diese Abbildung zeigt die getestete Flask-Webanwendung mit Wetteranfrage im Demo
 ![Test des Telegram-Bots](Bilder/Screenshot%2003_test%20telegram%20ohne%20wheathermap%20key.png)
 
 Diese Abbildung zeigt den erfolgreichen Test des Telegram-Bots im Polling-Modus. Die Befehle `/start`, `/hilfe`, `/wetter` und `/termin` wurden manuell geprüft. Da kein aktiver OpenWeatherMap API-Key verwendet wurde, antwortet der Bot mit Demo-Wetterdaten.
+
+## Tests mit API-Key
+
+Nach der Aktivierung des OpenWeatherMap API-Keys wurde die Anwendung erneut manuell getestet. Der API-Key war ausschließlich lokal in `.env` gespeichert und ist weder in dieser README, im Quellcode, in den Screenshots, im GitHub-Repository noch in der ZIP-Abgabe enthalten. `weather_service.py` liest ihn über die Umgebungsvariable `OPENWEATHER_API_KEY`. Mit aktivem API-Key liefern gültige Städtenamen reale Wetterdaten von OpenWeatherMap. Ungültige Städtenamen führen zu einer spezifischen, benutzerfreundlichen Meldung. Der Telegram-Bot und die Flask-Webanwendung verwenden dafür dieselbe Wetterlogik aus `weather_service.py`.
+
+Folgende manuelle Tests wurden durchgeführt:
+
+- `get_weather("Berlin")` im Terminal getestet
+- `get_weather("Paris")` im Terminal getestet
+- `get_weather("xyzstadt123")` im Terminal getestet
+- `create_booking_confirmation("20.07.2026", "14:00")` im Terminal getestet
+- `create_booking_confirmation("2026-07-20", "14:00")` im Terminal getestet
+- Flask-Webanwendung mit `Berlin` getestet
+- Flask-Webanwendung mit `London` getestet
+- Flask-Webanwendung mit ungültiger Stadtangabe getestet
+- Flask-Webanwendung mit gültigen fiktiven Termindaten getestet
+- Flask-Webanwendung mit ungültigem Datumsformat getestet
+- Telegram-Bot mit `/wetter Berlin` getestet
+- Telegram-Bot mit `/wetter Paris` getestet
+- Telegram-Bot mit ungültiger Stadtangabe getestet
+- Telegram-Bot mit gültigem `/termin 20.07.2026 14:00` getestet
+- Telegram-Bot mit ungültigen Datumsformaten getestet
+
+Gültige Städte lieferten reale Wetterdaten, beispielsweise `Wetter für Berlin: 24.0 °C, Klarer Himmel.` Für die ungültige Stadt wurde die spezifische Meldung `Die Stadt „xyzstadt123“ wurde nicht gefunden. Bitte prüfen Sie die Schreibweise oder geben Sie eine gültige Stadt ein.` ausgegeben. Dieser Test validiert die `HTTP 404`-Behandlung für ungültige Stadtnamen. Gültige Termindaten führten zu einer fiktiven Buchungsbestätigung; bei einem ungültigen Datumsformat erschien `Bitte verwenden Sie für das Datum das Format DD.MM.YYYY.` Die Anwendung stürzte nicht ab, und alle Meldungen blieben für Benutzerinnen und Benutzer verständlich. Dasselbe Verhalten war in den Terminaltests, in der Flask-Webanwendung und im Telegram-Bot verfügbar.
+
+### Manuelle Testergebnisse mit OpenWeatherMap API-Key
+
+**Abbildung 8: Terminaltests mit aktivem OpenWeatherMap API-Key**
+
+![Terminaltests mit OpenWeatherMap API-Key](Bilder/Screenshot%2004_test%20terminal%20mit%20wheathermap%20key.png)
+
+Diese Abbildung zeigt die erfolgreichen Terminaltests mit aktivem OpenWeatherMap API-Key. Es wurden gültige Städte, eine ungültige Stadt, eine gültige fiktive Terminbuchung und ein ungültiges Datumsformat geprüft.
+
+**Abbildung 9: Flask-Webanwendung mit realen Wetterdaten für Berlin**
+
+![Flask-Webanwendung mit Wetterdaten Berlin](Bilder/Screenshot%2005_test%20web%20mit%20wheathermap%20key1.png)
+
+Diese Abbildung zeigt die Flask-Webanwendung mit aktiver OpenWeatherMap-Anbindung. Für Berlin wird eine reale Wetterantwort angezeigt.
+
+**Abbildung 10: Flask-Webanwendung mit realen Wetterdaten für London**
+
+![Flask-Webanwendung mit Wetterdaten London](Bilder/Screenshot%2006_test%20web%20mit%20wheathermap%20key2.png)
+
+Diese Abbildung zeigt einen weiteren Test der Flask-Webanwendung mit einer anderen gültigen Stadt. Dadurch wurde geprüft, dass die API-Anbindung nicht nur für eine einzelne Stadt funktioniert.
+
+**Abbildung 11: Flask-Webanwendung mit Fehlerbehandlung bei ungültiger Stadt und ungültigem Datum**
+
+![Flask-Webanwendung Fehlerbehandlung](Bilder/Screenshot%2007_test%20web%20mit%20wheathermap%20key3.png)
+
+Diese Abbildung zeigt die Fehlerbehandlung der Webanwendung. Eine ungültige Stadt erzeugt eine spezifische Rückmeldung, und ein ungültiges Datumsformat erzeugt eine klare Validierungsmeldung.
+
+**Abbildung 12: Telegram-Bot mit aktivem OpenWeatherMap API-Key**
+
+![Telegram-Bot mit OpenWeatherMap API-Key](Bilder/Screenshot%2008_test%20telegram%20mit%20wheathermap%20key.png)
+
+Diese Abbildung zeigt den Telegram-Bot im Polling-Modus mit aktivem OpenWeatherMap API-Key. Wetteranfragen für gültige Städte, ungültige Stadtangaben und Terminbuchungen wurden manuell geprüft.
 
 # Beispieldialog
 
